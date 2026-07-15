@@ -56,9 +56,10 @@ Hooks wire engine-detected events into transitions, in the `hooks:` section. The
 - `ci_failed_cap <stage> <outcome> <N> <target>` - CI failed: use `<outcome>` up to N times, then route to `<target>`.
 - `mention_token <stage> <@token>` - the token in a PR comment that pings the human (e.g. `@lc`).
 - `review_bot_allowlist <stage> <bot>...` - review bots whose comments the engine acts on.
-- `retro_cadence <stage>` - marks the periodic audit step the pool fires on cadence (no PR).
 
-You rarely author these from nothing: copy the canonical bundle's whole hook block when adapting and change only what your pipeline needs. `signals:` (`<stage> <name> <decl>`) declare per-stage counters the caps and the retro digest read - copy them alongside the hooks they serve.
+The periodic retro audit is NOT a hook - it is an engine service that runs across all workflows automatically (any item that produces feedback gets audited), so you never wire it into a workflow.
+
+You rarely author these from nothing: copy the canonical bundle's whole hook block when adapting and change only what your pipeline needs. `signals:` (`<stage> <name> <decl>`) declare per-stage counters the caps read - copy them alongside the hooks they serve.
 
 ## workflows/&lt;name&gt;.md - the rest of the grammar
 
