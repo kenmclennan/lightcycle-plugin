@@ -1,0 +1,5 @@
+{
+  "name": "lightcycle",
+  "description": "Bootstraps and companions the lightcycle agent-pipeline engine (lc): installs and upgrades the CLI on session start, and provides workflow-authoring skills.",
+  "author": { "name": "Ken McLennan" }
+}

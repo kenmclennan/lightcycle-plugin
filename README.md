@@ -1,0 +1,35 @@
+# lightcycle-plugin
+
+The Claude Code companion for [lightcycle](https://github.com/kenmclennan/lightcycle) - the workflow-agnostic agent-pipeline engine (`lc`).
+
+The **engine** is a separate pipx-installed Python program (the pool, the store, the workers). This **plugin** is the claude-side front door: it bootstraps the engine onto a machine and ships the skills for working with it. Install the plugin on any machine - including a locked-down work laptop - and you get a working `lc` plus its authoring skills.
+
+## Install
+
+```
+/plugin marketplace add kenmclennan/lightcycle-plugin
+/plugin install lightcycle@lightcycle
+```
+
+**Prerequisite:** [`pipx`](https://pipx.pypa.io/) on your PATH. If it is missing the bootstrap prints a notice and does nothing else - install pipx and restart your session.
+
+## What it does
+
+- **Bootstrap (SessionStart hook).** Ensures the `lc` engine is installed and current: on a fresh machine it `pipx install`s lightcycle; where `lc` already exists it runs `lc upgrade` (the engine's own upgrade, which respects its pool-busy guard); then `lc init` (idempotent). Rate-limited to once a day so it is not a per-session network hit.
+- **Skills.**
+  - `author-workflow` - author or edit a workflow source (the `source.toml` + `workflows/*.md` + `steps/*.md` bundle) against the sources convention.
+
+The plugin owns getting the engine onto the machine and keeping it current; the engine owns everything at runtime.
+
+## Layout
+
+```
+.claude-plugin/marketplace.json     # catalogs the one plugin
+plugins/lightcycle/
+├── .claude-plugin/plugin.json       # metadata (no version -> every commit is an update)
+├── hooks/
+│   ├── hooks.json                    # SessionStart -> bootstrap.sh
+│   └── bootstrap.sh                  # install / upgrade / init
+└── skills/
+    └── author-workflow/SKILL.md
+```

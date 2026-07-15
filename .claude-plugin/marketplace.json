@@ -1,0 +1,11 @@
+{
+  "name": "lightcycle",
+  "owner": { "name": "Ken McLennan" },
+  "plugins": [
+    {
+      "name": "lightcycle",
+      "source": "./plugins/lightcycle",
+      "description": "Companion for the lightcycle agent-pipeline engine: bootstraps the lc CLI on session start and provides workflow-authoring skills."
+    }
+  ]
+}
