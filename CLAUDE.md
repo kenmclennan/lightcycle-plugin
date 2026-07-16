@@ -13,10 +13,7 @@ lightcycle is four coordinated repos. A change that spans them lands in tandem.
 
 The plugin bootstraps the engine and ships the authoring skills; it can't _be_ the engine (a plugin is claude config, not a daemon). A change to the engine's contract, the workflow grammar, or the audit/hook model usually spans several repos - the skills here must track it.
 
-## Working across the repos
-
-- **PR-flow for every repo.** Branch, open a PR, get it reviewed, merge. No direct-to-main - engine, origin, specs, and plugin alike.
-- **Coupled changes land in tandem.** When a change spans repos (e.g. an engine change that removes a workflow hook), open the PRs together and note the coupling in each. Roll out live with `lc upgrade` (engine) + `lc workflow upgrade` (origin).
+_Cross-repo process (PR-flow, coupled changes) is a driver operation - see the engine's `prompts/driver.md`._
 
 ## Conventions
 
