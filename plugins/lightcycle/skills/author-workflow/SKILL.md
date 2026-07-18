@@ -7,7 +7,7 @@ description: Author, adapt, or fork a lightcycle workflow source - a pullable gi
 
 A **workflow source** is a git repo the `lc` engine pulls into an immutable, sha-pinned **bundle**. Every item that runs a workflow pins `<origin>/<name>@<sha>`, so a bundle must be **self-contained**: the flow graph and every step it names live in that one repo. Pin integrity is why steps are copied into a source rather than shared across origins - a pinned sha must always resolve the same bytes.
 
-The engine is workflow-agnostic: it supplies primitives (`lc claim`/`lc done`, worktrees, PR and CI hooks) and knows nothing about your pipeline. A *workflow* is entirely the markdown in a source. But "agnostic" cuts both ways - a workflow only works if it speaks the engine's contract exactly: the right hooks, valid graph, and every step handing off an outcome the graph routes. That contract is what this skill carries; the rest you lift from the canonical bundle.
+The engine is workflow-agnostic: it supplies primitives (`lc claim`/`lc done`, worktrees, PR and CI hooks) and knows nothing about your pipeline. A _workflow_ is entirely the markdown in a source. But "agnostic" cuts both ways - a workflow only works if it speaks the engine's contract exactly: the right hooks, valid graph, and every step handing off an outcome the graph routes. That contract is what this skill carries; the rest you lift from the canonical bundle.
 
 ## Read the canonical bundle first
 
@@ -17,8 +17,8 @@ The engine is workflow-agnostic: it supplies primitives (`lc claim`/`lc done`, w
 
 Most authoring is **not** from scratch. A new workflow shares the bulk of an existing one - the code-build, PR, CI, review, merge, and conflict machinery is identical; only the front differs. Start from the nearest workflow and change what's genuinely different. Two mechanically different cases:
 
-- **A variant in the SAME source** (e.g. a BDD-driven flow beside spec-driven). Steps are shared *within* a bundle, so you do **not** copy them - add a new `workflows/<name>.md` that **reuses existing steps by name** (`open-pr`, `await-merge`, `watch-ci`, `review-code`, `cleanup`, and the hook block) and add only the genuinely-new steps. For BDD-driven: copy `spec-driven.md`, replace the front (`spec-writer` → a `feature-writer` authoring gherkin `.feature` files; the spec-PR gate → a scenario-review gate), rewire only those front edges - the whole code phase from `write-code` on is reused untouched.
-- **Forking from ANOTHER source.** The self-contained rule *requires* you to copy that source's `workflows/<name>.md` **and every `steps/*.md` it references** into your source, then modify. `lc workflow list` shows where each bundle lives; copy from there. `lc flow` then proves you brought everything across.
+- **A variant in the SAME source** (e.g. a BDD-driven flow beside spec-driven). Steps are shared _within_ a bundle, so you do **not** copy them - add a new `workflows/<name>.md` that **reuses existing steps by name** (`open-pr`, `await-merge`, `watch-ci`, `review-code`, `cleanup`, and the hook block) and add only the genuinely-new steps. For BDD-driven: copy `spec-driven.md`, replace the front (`spec-writer` → a `feature-writer` authoring gherkin `.feature` files; the spec-PR gate → a scenario-review gate), rewire only those front edges - the whole code phase from `write-code` on is reused untouched. This is a **three-gate** flow (spec PR, then a `@wip`-tagged scenario PR in the project repo, then the code PR), so it declares a third `feature` phase in the `phase:` block: `feature` and `code` share the `project` workspace but are distinct gates, each with its own PR, branch, and worktree.
+- **Forking from ANOTHER source.** The self-contained rule _requires_ you to copy that source's `workflows/<name>.md` **and every `steps/*.md` it references** into your source, then modify. `lc workflow list` shows where each bundle lives; copy from there. `lc flow` then proves you brought everything across.
 
 From-scratch is the fallback for a novel pipeline - and even then, lift the step prompts and the hook block from the canonical bundle rather than reinventing the PR/CI wiring, which is the most common way to get a workflow subtly wrong.
 
@@ -39,9 +39,9 @@ A workflow is a graph of stages. Each stage is an **ephemeral agent** (or a huma
 1. **Outcome → route.** Every `<outcome>` an agent can emit needs a matching **edge** `from-stage  outcome  target` (omit target for a terminal). An emitted outcome with no edge dead-ends the item. Keep the step prompt's outcomes and the graph's edges in exact lockstep - if a step can end three ways, the graph needs three edges.
 2. **Artifacts → accepts/produces.** An owned step's frontmatter declares `accepts:` (artifacts it needs, each `required`/`optional`) and `produces:` (artifacts it attaches). The engine proves every `accepts` is satisfied by the workflow's `requires` or an upstream `produces` **before the workflow runs**; an unsatisfiable accept is rejected. This is what makes the chain sound rather than hopeful.
 
-**Edges vs hooks** is the line that matters most: an **edge** is an outcome the *agent* emits (`lc done ... done`); a **hook** is an outcome the *engine* injects from an event outside the agent (a PR merged, CI failed). The agent never emits a hook outcome. Confusing the two is the most common graph bug.
+**Edges vs hooks** is the line that matters most: an **edge** is an outcome the _agent_ emits (`lc done ... done`); a **hook** is an outcome the _engine_ injects from an event outside the agent (a PR merged, CI failed). The agent never emits a hook outcome. Confusing the two is the most common graph bug.
 
-**Who runs a stage:** a `steps/<role>.md` with a `model:` is an agent step; a step file *without* `model:` is a human gate; a stage with *no* step file is a fileless terminal (a valid endpoint - a reached-and-done cleanup, a human `review-conflict`). Only owned (agent/human) non-terminal stages must have a file.
+**Who runs a stage:** a `steps/<role>.md` with a `model:` is an agent step; a step file _without_ `model:` is a human gate; a stage with _no_ step file is a fileless terminal (a valid endpoint - a reached-and-done cleanup, a human `review-conflict`). Only owned (agent/human) non-terminal stages must have a file.
 
 ## The engine's hooks - the catalog
 
@@ -67,7 +67,8 @@ Beyond `entry`, `edges`, `hooks`, `signals`:
 
 - `entry: <role>` - the first stage (needs a `steps/<role>.md`).
 - `requires: <artifact> ...` - artifacts the item must already carry to start; these satisfy the entry step's `accepts`.
-- `workspace: <repo-key>` - default worktree repo (usually `project`). Omit the value to open a per-stage `workspace:` section (`<stage> <repo-key>` lines) when phases run in different repos (a spec phase in `specs`, code in `project`).
+- `workspace: <repo-key>` - default worktree repo (usually `project`). Omit the value to open a per-stage `workspace:` section (`<stage> <repo-key>` lines) when a phase's worktree comes from a different repo (a spec phase in `specs`, code in `project`).
+- `phase:` - a per-stage section (`<stage> <phase>` lines) declaring which **PR-gate** each stage belongs to. A phase is an ordered gate with its own PR, branch, and worktree; stages that share a phase share all three, so every stage in one PR-segment must declare the same phase. It is **decoupled from `workspace:`** - two phases can run in the _same_ repo (a BDD flow's `feature` and `code` gates both in `project`), which is exactly what a plain repo/workspace split cannot express. Undeclared -> one unlabeled phase (a single PR), so simple one-gate workflows write no `phase:` at all; a multi-gate workflow declares a phase for every PR-segment stage. `spec-driven` declares `spec` for its specs-workspace stages and `code` for the rest.
 - `nodes: <stage> <step-file>` - only when one step file serves two positions (e.g. `spec-open-pr` and `code-open-pr` both map to `open-pr`).
 
 For exact indentation and section order, mirror the canonical `spec-driven.md` - don't reconstruct the syntax from memory.
@@ -82,7 +83,7 @@ Frontmatter (`model`, `accepts`, `produces`) plus the system prompt. Study the c
 
 ## The self-contained-bundle rule
 
-Steps are shared *within* a bundle (two positions, one file) but duplicated *across* sources. A source that wants `open-pr` behaviour copies the step in; it never reaches into another origin. The duplication is the price of pin integrity - do not factor it out.
+Steps are shared _within_ a bundle (two positions, one file) but duplicated _across_ sources. A source that wants `open-pr` behaviour copies the step in; it never reaches into another origin. The duplication is the price of pin integrity - do not factor it out.
 
 ## Validate - to ship and to debug
 
