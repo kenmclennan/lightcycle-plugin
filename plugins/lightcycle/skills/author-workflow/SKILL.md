@@ -1,6 +1,6 @@
 ---
 name: author-workflow
-description: Author, adapt, or fork a lightcycle workflow source - a pullable git origin the `lc` engine turns into a sha-pinned bundle. Use this whenever creating a new workflow for the lightcycle/lc engine, adapting an existing one into a variant (e.g. a BDD-driven flow from spec-driven), forking a workflow from another source into your own, adding a workflow to a source, editing a workflow's graph (entry/edges/hooks/signals), writing or changing a step's role prompt, or debugging why `lc workflow add`/`lc flow` rejects a bundle. Covers the source.toml manifest, the workflows/*.md graph grammar, the engine's hook catalog, the steps/*.md role prompts and their accepts/produces handoff contract, and the self-contained-bundle rule.
+description: Author, adapt, or fork a lightcycle workflow source - a pullable git origin the `lc` engine turns into a sha-pinned bundle. Use this whenever creating a new workflow for the lightcycle/lc engine, adapting an existing one into a variant (e.g. a BDD-driven flow from spec-driven), forking a workflow from another source into your own, adding a workflow to a source, editing a workflow's graph (entry/edges/hooks/signals), writing or changing a step's role prompt, or debugging why `lc workflow add`/`lc workflow check` rejects a bundle. Covers the source.toml manifest, the workflows/*.md graph grammar, the engine's hook catalog, the steps/*.md role prompts and their accepts/produces handoff contract, and the self-contained-bundle rule.
 ---
 
 # Author a lightcycle workflow source
@@ -18,7 +18,7 @@ The engine is workflow-agnostic: it supplies primitives (`lc claim`/`lc done`, w
 Most authoring is **not** from scratch. A new workflow shares the bulk of an existing one - the code-build, PR, CI, review, merge, and conflict machinery is identical; only the front differs. Start from the nearest workflow and change what's genuinely different. Two mechanically different cases:
 
 - **A variant in the SAME source** (e.g. a BDD-driven flow beside spec-driven). Steps are shared _within_ a bundle, so you do **not** copy them - add a new `workflows/<name>.md` that **reuses existing steps by name** (`open-pr`, `await-merge`, `watch-ci`, `review-code`, `cleanup`, and the hook block) and add only the genuinely-new steps. For BDD-driven: copy `spec-driven.md`, replace the front (`spec-writer` → a `feature-writer` authoring gherkin `.feature` files; the spec-PR gate → a scenario-review gate), rewire only those front edges - the whole code phase from `write-code` on is reused untouched. This is a **three-gate** flow (spec PR, then a `@wip`-tagged scenario PR in the project repo, then the code PR), so it declares a third `feature` phase in the `phase:` block: `feature` and `code` share the `project` workspace but are distinct gates, each with its own PR, branch, and worktree.
-- **Forking from ANOTHER source.** The self-contained rule _requires_ you to copy that source's `workflows/<name>.md` **and every `steps/*.md` it references** into your source, then modify. `lc workflow list` shows where each bundle lives; copy from there. `lc flow` then proves you brought everything across.
+- **Forking from ANOTHER source.** The self-contained rule _requires_ you to copy that source's `workflows/<name>.md` **and every `steps/*.md` it references** into your source, then modify. `lc workflow list` shows where each bundle lives; copy from there. `lc workflow check <origin>/<name>` then proves you brought everything across.
 
 From-scratch is the fallback for a novel pipeline - and even then, lift the step prompts and the hook block from the canonical bundle rather than reinventing the PR/CI wiring, which is the most common way to get a workflow subtly wrong.
 
@@ -65,6 +65,7 @@ You rarely author these from nothing: copy the canonical bundle's whole hook blo
 
 Beyond `entry`, `edges`, `hooks`, `signals`:
 
+- **Frontmatter** - a leading `---` block with `summary:` (one line: what the workflow does) and `when-to-use:` (one line: when to reach for it, like a skill's description). `lc workflow list` prints the summary; `lc workflow describe` shows both. `parse_graph` ignores the frontmatter, so the graph body follows the closing `---`. Write one for every workflow - it is how a driver picks between workflows in a multi-workflow origin.
 - `entry: <role>` - the first stage (needs a `steps/<role>.md`).
 - `requires: <artifact> ...` - artifacts the item must already carry to start; these satisfy the entry step's `accepts`.
 - `workspace: <repo-key>` - default worktree repo (usually `project`). Omit the value to open a per-stage `workspace:` section (`<stage> <repo-key>` lines) when a phase's worktree comes from a different repo (a spec phase in `specs`, code in `project`).
@@ -88,6 +89,6 @@ Steps are shared _within_ a bundle (two positions, one file) but duplicated _acr
 ## Validate - to ship and to debug
 
 - `lc workflow add <url>` / `lc workflow upgrade <origin>` validates at pull time: contract compatibility, and every edge/hook target naming an owned step resolves to a real file (fileless terminals allowed). A dangling reference is refused before anything registers.
-- `lc flow` prints the assembled flow and checks composition: entry, routes, and the `accepts`/`produces` contracts. Run it after any change; a green `lc flow` is your proof the workflow is sound.
+- `lc workflow check <origin>/<name>` prints the assembled flow and checks composition: entry, routes, the `accepts`/`produces` contracts, and the `phase:` block. Run it after any change; a green `lc workflow check` is your proof the workflow is sound. (`lc workflow describe <origin>/<name>` shows the human-facing view - summary, when-to-use, phases, step roles.)
 
 When either rejects the bundle, the message names what failed - a missing step file, an unsatisfiable `accepts`, an unreachable stage. Fix the named thing; don't work around the validator.
