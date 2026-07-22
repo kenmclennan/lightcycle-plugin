@@ -1,6 +1,6 @@
 ---
 name: author-workflow
-description: Author, adapt, or fork a lightcycle workflow source - a pullable git origin the `lc` engine turns into a sha-pinned bundle. Use this whenever creating a new workflow for the lightcycle/lc engine, adapting an existing one into a variant (e.g. a BDD-driven flow from spec-driven), forking a workflow from another source into your own, adding a workflow to a source, editing a workflow's graph (entry/edges/hooks/signals), writing or changing a step's role prompt, or debugging why `lc workflow add`/`lc workflow check` rejects a bundle. Covers the source.toml manifest, the workflows/*.md graph grammar, the engine's hook catalog, the steps/*.md role prompts and their accepts/produces handoff contract, and the self-contained-bundle rule.
+description: Design, author, adapt, or fork a lightcycle workflow source - a pullable git origin the `lc` engine turns into a sha-pinned bundle. Use this whenever designing a workflow's flow (a mermaid diagram of the graph plus step/gate/trigger descriptions - the workflow-design spec), creating a new workflow for the lightcycle/lc engine, adapting an existing one into a variant (e.g. a BDD-driven flow from spec-driven), forking a workflow from another source into your own, adding a workflow to a source, editing a workflow's graph (entry/edges/hooks/signals), writing or changing a step's role prompt, or debugging why `lc workflow add`/`lc workflow check` rejects a bundle. Covers the workflow-design mermaid conventions, the source.toml manifest, the workflows/*.md graph grammar, the engine's hook catalog, the steps/*.md role prompts and their accepts/produces handoff contract, and the self-contained-bundle rule - everything needed to build a valid workflow WITHOUT reading the engine source.
 ---
 
 # Author a lightcycle workflow source
@@ -9,9 +9,30 @@ A **workflow source** is a git repo the `lc` engine pulls into an immutable, sha
 
 The engine is workflow-agnostic: it supplies primitives (`lc claim`/`lc done`, worktrees, PR and CI hooks) and knows nothing about your pipeline. A _workflow_ is entirely the markdown in a source. But "agnostic" cuts both ways - a workflow only works if it speaks the engine's contract exactly: the right hooks, valid graph, and every step handing off an outcome the graph routes. That contract is what this skill carries; the rest you lift from the canonical bundle.
 
+**You never need the lightcycle engine source.** Everything to design and author a workflow - the grammar, the hook catalog, the mermaid conventions, the validation rules - is in this skill or the canonical bundle (`workflows/spec-driven.md` + its `steps/*.md`). A distributed setup is the pipx engine **binary** + this skill + a workflow origin, with no source checked out; a workflow you can only design by reading `graph.py`/`cli.py`/`contracts.py` is one nobody else can reproduce. If something here or in the bundle is genuinely missing, that is a gap to **report** (so it gets fixed here), never a reason to open the engine source.
+
 ## Read the canonical bundle first
 
 `lc workflow list` prints the built-in `lightcycle` origin and its on-disk path. Read its `source.toml`, `workflows/spec-driven.md`, and a few `steps/*.md` before writing. It is the reference implementation; when this skill and the bundle disagree, the bundle wins (it is what the engine loads).
+
+## Design the flow first - the workflow-design spec
+
+Before authoring any bundle, design the flow and get it reviewed. In a workflow-authoring pipeline the spec **is** the design (not a code spec), and it has two parts a human reviews on the spec PR before a line of bundle is written:
+
+**1. A mermaid flowchart of the graph.** Draw it with the exact conventions `lc workflow describe <origin>/<name> --mermaid` renders, so the design and the later generated diagram are directly comparable (that comparison is how a reviewer confirms the built bundle matches the approved flow):
+
+- `flowchart TD` to open.
+- **Node shape encodes who runs the stage** (the same distinction as "Who runs a stage" below): an agent step is a rectangle `stage["stage"]`; a human gate is rounded `stage("stage")`; a fileless terminal is a stadium `stage(["stage"])`.
+- **A solid edge is a driver-emitted outcome:** `from -->|outcome| to`.
+- **A dashed edge is an engine-injected hook:** `from -.->|hook: outcome| to` - e.g. `spec-await-merge -.->|pr_merge: spec-merged| write-code`, `watch-ci -.->|ci_failed_cap x3: ci-failed| review-ci`. (Keeping hooks visually distinct from edges on the diagram mirrors the single most important grammar rule - see "Edges vs hooks" below.) A hook whose outcome has **no routing edge** - e.g. `pr_close abandoned`, where `abandoned` just closes the item - is **not drawn at all**; a hook edge appears only when its outcome routes to a real stage, so do not invent a node for a bare terminating outcome.
+- **Group each phase's owned stages** in `subgraph phase_<name>["<name>"] ... end` (a fileless terminal carries no phase, so it sits outside the subgraphs). If the workflow declares **no `phase:` block** at all (a single-gate flow), there are **no subgraphs** - every stage is a bare top-level node, so draw it that way, or declare one explicit phase if you want the grouping.
+- Optionally add a `classDef` per node kind (agent/human/terminal) to colour them, matching what `describe --mermaid` emits.
+
+Draw this from the flow you are **designing**, working from the canonical bundle as your model - never from the engine's rendering code.
+
+**2. A one-line description of each step, gate, and trigger:** what the stage does, the outcome(s) it emits, and which hooks act on it. This is the prose a reviewer reads alongside the diagram.
+
+Once the bundle is authored, `lc workflow describe <origin>/<name> --mermaid` renders the built graph; its nodes, edges, and phase grouping must match this design mermaid.
 
 ## Adapt an existing workflow - the default path
 
