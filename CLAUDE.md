@@ -8,7 +8,7 @@ lightcycle is four coordinated repos (engine / workflows / specs / plugin); this
 
 The plugin bootstraps the engine and ships the authoring skills; it can't _be_ the engine (a plugin is claude config, not a daemon).
 
-_Cross-repo process (PR-flow, coupled changes) is a driver operation - see the engine's `prompts/driver.md`._
+_Cross-repo process (PR-flow, coupled changes) is a driver operation - see the `driver` skill._
 
 ## Conventions
 

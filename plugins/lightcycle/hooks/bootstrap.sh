@@ -6,6 +6,10 @@ STAMP="$STAMP_DIR/.plugin-bootstrap-checked"
 
 mkdir -p "$STAMP_DIR" 2>/dev/null
 
+if command -v lc >/dev/null 2>&1; then
+  echo "lightcycle: to drive work - develop a brief, file items to the pipeline, and clear the human review gates in 'lc inbox' - invoke the 'driver' skill."
+fi
+
 if [ -n "$(find "$STAMP" -mtime -1 2>/dev/null)" ]; then
   exit 0
 fi
