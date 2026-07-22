@@ -15,8 +15,9 @@ The **engine** is a separate pipx-installed Python program (the pool, the store,
 
 ## What it does
 
-- **Bootstrap (SessionStart hook).** Ensures the `lc` engine is installed and current: on a fresh machine it `pipx install`s lightcycle; where `lc` already exists it runs `lc upgrade` (the engine's own upgrade, which respects its pool-busy guard); then `lc init` (idempotent). Rate-limited to once a day so it is not a per-session network hit. It also emits a one-line nudge each session to invoke the `driver` skill.
+- **Bootstrap (SessionStart hook).** Ensures the `lc` engine is installed and current: on a fresh machine it `pipx install`s lightcycle; where `lc` already exists it runs `lc upgrade` (the engine's own upgrade, which respects its pool-busy guard); then `lc init` (idempotent). Rate-limited to once a day so it is not a per-session network hit. It also emits a one-line nudge each session: `setup` on a machine with no registered projects, otherwise `driver`.
 - **Skills.**
+  - `setup` - one-time machine onboarding: verify prerequisites, point `lc` at your directories, register your repos in the project registry (via `lc project scan`), and optionally create a personal workflow origin, then hand off to `driver`. Invoke it on a fresh machine.
   - `driver` - the human's seat for driving lightcycle: developing an idea into a brief, filing items to the pipeline, and clearing the human review gates (spec PRs, code await-merge) in `lc inbox`. Invoke it to drive a session - it is the playbook that replaces the retired `lc driver` command.
   - `author-workflow` - co-design the shape of a workflow (its flow - stages, routes, hooks) before it is built; the authoring craft itself lives in the built-in workflow-authoring bundle's steps.
 
@@ -32,6 +33,7 @@ plugins/lightcycle/
 │   ├── hooks.json                    # SessionStart -> bootstrap.sh
 │   └── bootstrap.sh                  # install / upgrade / init
 └── skills/
+    ├── setup/SKILL.md
     ├── driver/SKILL.md
     └── author-workflow/SKILL.md
 ```

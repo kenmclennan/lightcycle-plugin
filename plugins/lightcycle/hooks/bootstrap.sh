@@ -7,7 +7,11 @@ STAMP="$STAMP_DIR/.plugin-bootstrap-checked"
 mkdir -p "$STAMP_DIR" 2>/dev/null
 
 if command -v lc >/dev/null 2>&1; then
-  echo "lightcycle: to drive work - develop a brief, file items to the pipeline, and clear the human review gates in 'lc inbox' - invoke the 'driver' skill."
+  if [ -z "$(lc project list 2>/dev/null)" ]; then
+    echo "lightcycle: no projects registered on this machine yet - invoke the 'setup' skill to configure lightcycle and register your repos."
+  else
+    echo "lightcycle: to drive work - develop a brief, file items to the pipeline, and clear the human review gates in 'lc inbox' - invoke the 'driver' skill."
+  fi
 fi
 
 if [ -n "$(find "$STAMP" -mtime -1 2>/dev/null)" ]; then
