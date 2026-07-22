@@ -17,7 +17,7 @@ The **engine** is a separate pipx-installed Python program (the pool, the store,
 
 - **Bootstrap (SessionStart hook).** Ensures the `lc` engine is installed and current: on a fresh machine it `pipx install`s lightcycle; where `lc` already exists it runs `lc upgrade` (the engine's own upgrade, which respects its pool-busy guard); then `lc init` (idempotent). Rate-limited to once a day so it is not a per-session network hit.
 - **Skills.**
-  - `author-workflow` - author or edit a workflow source (the `source.toml` + `workflows/*.md` + `steps/*.md` bundle) against the sources convention.
+  - `author-workflow` - co-design the shape of a workflow (its flow - stages, routes, hooks) before it is built; the authoring craft itself lives in the built-in workflow-authoring bundle's steps.
 
 The plugin owns getting the engine onto the machine and keeping it current; the engine owns everything at runtime.
 
