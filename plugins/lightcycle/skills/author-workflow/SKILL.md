@@ -1,115 +1,25 @@
 ---
 name: author-workflow
-description: Design, author, adapt, or fork a lightcycle workflow source - a pullable git origin the `lc` engine turns into a sha-pinned bundle. Use this whenever designing a workflow's flow (a mermaid diagram of the graph plus step/gate/trigger descriptions - the workflow-design spec), creating a new workflow for the lightcycle/lc engine, adapting an existing one into a variant (e.g. a BDD-driven flow from spec-driven), forking a workflow from another source into your own, adding a workflow to a source, editing a workflow's graph (entry/edges/hooks/signals), writing or changing a step's role prompt, or debugging why `lc workflow add`/`lc workflow check` rejects a bundle. Covers the workflow-design mermaid conventions, the source.toml manifest, the workflows/*.md graph grammar, the engine's hook catalog, the steps/*.md role prompts and their accepts/produces handoff contract, and the self-contained-bundle rule - everything needed to build a valid workflow WITHOUT reading the engine source.
+description: Understand and CO-DESIGN a lightcycle workflow - shaping its flow (stages, review gates, triggers) with a human before it is built. Use this when deciding what a new lightcycle/lc workflow should DO, or reshaping an existing one: what the phases and human review gates are, what an agent step vs a human gate vs a terminal is, what triggers rework, and what the design mermaid should show. The full authoring craft (exact grammar, hook syntax, QA) is NOT here - it lives in the workflow-authoring pipeline's own steps and the built-in bundles; this skill is for the design conversation that precedes filing a workflow to be built.
 ---
 
-# Author a lightcycle workflow source
+# Co-design a lightcycle workflow
 
-A **workflow source** is a git repo the `lc` engine pulls into an immutable, sha-pinned **bundle**. Every item that runs a workflow pins `<origin>/<name>@<sha>`, so a bundle must be **self-contained**: the flow graph and every step it names live in that one repo. Pin integrity is why steps are copied into a source rather than shared across origins - a pinned sha must always resolve the same bytes.
+A **workflow** is how lightcycle composes many ephemeral agents into a durable pipeline: a graph of **stages** (each an autonomous agent, or a human gate), where a stage's **outcome routes to the next stage**, plus **hooks** that inject outcomes from events outside any agent (a PR merged, CI failed, a comment landed). This skill helps you and a human **shape** that graph. It deliberately does **not** carry the full grammar - once the design is agreed, the `workflow-authoring` pipeline builds the actual bundle, and its own steps carry the authoring craft.
 
-The engine is workflow-agnostic: it supplies primitives (`lc claim`/`lc done`, worktrees, PR and CI hooks) and knows nothing about your pipeline. A _workflow_ is entirely the markdown in a source. But "agnostic" cuts both ways - a workflow only works if it speaks the engine's contract exactly: the right hooks, valid graph, and every step handing off an outcome the graph routes. That contract is what this skill carries; the rest you lift from the canonical bundle.
+## What to settle in the design conversation
 
-**You never need the lightcycle engine source.** Everything to design and author a workflow - the grammar, the hook catalog, the mermaid conventions, the validation rules - is in this skill or the canonical bundle (`workflows/spec-driven.md` + its `steps/*.md`). A distributed setup is the pipx engine **binary** + this skill + a workflow origin, with no source checked out; a workflow you can only design by reading `graph.py`/`cli.py`/`contracts.py` is one nobody else can reproduce. If something here or in the bundle is genuinely missing, that is a gap to **report** (so it gets fixed here), never a reason to open the engine source.
+- **The stages, and who runs each.** An **agent step** (autonomous, does the work) vs a **human gate** (a decision only a person makes - a review, a merge) vs a **fileless terminal** (a reached endpoint, no work). Name each stage by what it does, terse.
+- **The review gates (phases).** A phase is one ordered gate with its own PR and worktree. Where are the human review points? `spec-driven` has two (the spec PR, then the code PR); a simpler flow has one. Decide them - they are where the human's attention lands.
+- **The outcomes and routing.** What can each stage end as, and where does each outcome go? The happy path is one route; a rework loop (a review `rejected` routing back to the build stage) is another. Every way a stage can end needs a destination.
+- **The triggers.** What external events drive the flow - a PR merging, CI failing, a review comment? These are **hooks**. The **edge-vs-hook line is the one distinction that matters most**: an **edge** is an outcome the _agent_ emits (`lc done ... <outcome>`); a **hook** is one the _engine_ injects from an event. An agent never emits a hook outcome. Keep them straight when sketching the flow.
+- **The design mermaid.** The output of design is a mermaid flowchart of the graph plus a one-line description of each stage, gate, and trigger - reviewed (on a spec PR) before anything is built.
 
-## Read the canonical bundle first
+## What NOT to do from this skill
 
-`lc workflow list` prints the built-in `lightcycle` origin and its on-disk path. Read its `source.toml`, `workflows/spec-driven.md`, and a few `steps/*.md` before writing. It is the reference implementation; when this skill and the bundle disagree, the bundle wins (it is what the engine loads).
+- **Do not hand-write the bundle** (the graph markdown + the step prompts) from memory. That is the pipeline's job, and getting the exact grammar/hook syntax right is where it goes subtly wrong.
+- **Do not reconstruct the grammar or hook catalog here.** The authoritative reference is the **built-in bundles** (`lc workflow list` shows their on-disk path - read `spec-driven.md` and its `steps/*.md`) and `lc workflow describe <origin>/<name>` (add `--mermaid` for the rendered graph).
 
-## Design the flow first - the workflow-design spec
+## To actually build the design
 
-Before authoring any bundle, design the flow and get it reviewed. In a workflow-authoring pipeline the spec **is** the design (not a code spec), and it has two parts a human reviews on the spec PR before a line of bundle is written:
-
-**1. A mermaid flowchart of the graph.** Draw it with the exact conventions `lc workflow describe <origin>/<name> --mermaid` renders, so the design and the later generated diagram are directly comparable (that comparison is how a reviewer confirms the built bundle matches the approved flow):
-
-- `flowchart TD` to open.
-- **Node shape encodes who runs the stage** (the same distinction as "Who runs a stage" below): an agent step is a rectangle `stage["stage"]`; a human gate is rounded `stage("stage")`; a fileless terminal is a stadium `stage(["stage"])`.
-- **A solid edge is a driver-emitted outcome:** `from -->|outcome| to`.
-- **A dashed edge is an engine-injected hook:** `from -.->|hook: outcome| to` - e.g. `spec-await-merge -.->|pr_merge: spec-merged| write-code`, `watch-ci -.->|ci_failed_cap x3: ci-failed| review-ci`. (Keeping hooks visually distinct from edges on the diagram mirrors the single most important grammar rule - see "Edges vs hooks" below.) A hook whose outcome has **no routing edge** - e.g. `pr_close abandoned`, where `abandoned` just closes the item - is **not drawn at all**; a hook edge appears only when its outcome routes to a real stage, so do not invent a node for a bare terminating outcome.
-- **Group each phase's owned stages** in `subgraph phase_<name>["<name>"] ... end` (a fileless terminal carries no phase, so it sits outside the subgraphs). If the workflow declares **no `phase:` block** at all (a single-gate flow), there are **no subgraphs** - every stage is a bare top-level node, so draw it that way, or declare one explicit phase if you want the grouping.
-- Optionally add a `classDef` per node kind (agent/human/terminal) to colour them, matching what `describe --mermaid` emits.
-
-Draw this from the flow you are **designing**, working from the canonical bundle as your model - never from the engine's rendering code.
-
-**2. A one-line description of each step, gate, and trigger:** what the stage does, the outcome(s) it emits, and which hooks act on it. This is the prose a reviewer reads alongside the diagram.
-
-Once the bundle is authored, `lc workflow describe <origin>/<name> --mermaid` renders the built graph; its nodes, edges, and phase grouping must match this design mermaid.
-
-## Adapt an existing workflow - the default path
-
-Most authoring is **not** from scratch. A new workflow shares the bulk of an existing one - the code-build, PR, CI, review, merge, and conflict machinery is identical; only the front differs. Start from the nearest workflow and change what's genuinely different. Two mechanically different cases:
-
-- **A variant in the SAME source** (e.g. a BDD-driven flow beside spec-driven). Steps are shared _within_ a bundle, so you do **not** copy them - add a new `workflows/<name>.md` that **reuses existing steps by name** (`open-pr`, `await-merge`, `watch-ci`, `review-code`, `cleanup`, and the hook block) and add only the genuinely-new steps. For BDD-driven: copy `spec-driven.md`, replace the front (`spec-writer` → a `feature-writer` authoring gherkin `.feature` files; the spec-PR gate → a scenario-review gate), rewire only those front edges - the whole code phase from `write-code` on is reused untouched. This is a **three-gate** flow (spec PR, then a `@wip`-tagged scenario PR in the project repo, then the code PR), so it declares a third `feature` phase in the `phase:` block: `feature` and `code` share the `project` workspace but are distinct gates, each with its own PR, branch, and worktree.
-- **Forking from ANOTHER source.** The self-contained rule _requires_ you to copy that source's `workflows/<name>.md` **and every `steps/*.md` it references** into your source, then modify. `lc workflow list` shows where each bundle lives; copy from there. `lc workflow check <origin>/<name>` then proves you brought everything across.
-
-From-scratch is the fallback for a novel pipeline - and even then, lift the step prompts and the hook block from the canonical bundle rather than reinventing the PR/CI wiring, which is the most common way to get a workflow subtly wrong.
-
-## source.toml
-
-```toml
-name = "lightcycle"
-contract = 1
-description = "..."
-```
-
-`contract` (**required**) is the integer engine contract the source targets; `lc workflow add`/`upgrade` refuses an incompatible pull loudly, at pull time. Match the contract the canonical bundle declares (that is the engine in use). `name`/`description` optional; workflows are discovered from `workflows/`.
-
-## The handoff contract - how steps chain into a workflow
-
-A workflow is a graph of stages. Each stage is an **ephemeral agent** (or a human gate) that claims one step, does the work, and ends with `lc done <STEP> <outcome>`. Two things must line up for the handoff to work:
-
-1. **Outcome → route.** Every `<outcome>` an agent can emit needs a matching **edge** `from-stage  outcome  target` (omit target for a terminal). An emitted outcome with no edge dead-ends the item. Keep the step prompt's outcomes and the graph's edges in exact lockstep - if a step can end three ways, the graph needs three edges.
-2. **Artifacts → accepts/produces.** An owned step's frontmatter declares `accepts:` (artifacts it needs, each `required`/`optional`) and `produces:` (artifacts it attaches). The engine proves every `accepts` is satisfied by the workflow's `requires` or an upstream `produces` **before the workflow runs**; an unsatisfiable accept is rejected. This is what makes the chain sound rather than hopeful.
-
-**Edges vs hooks** is the line that matters most: an **edge** is an outcome the _agent_ emits (`lc done ... done`); a **hook** is an outcome the _engine_ injects from an event outside the agent (a PR merged, CI failed). The agent never emits a hook outcome. Confusing the two is the most common graph bug.
-
-**Who runs a stage:** a `steps/<role>.md` with a `model:` is an agent step; a step file _without_ `model:` is a human gate; a stage with _no_ step file is a fileless terminal (a valid endpoint - a reached-and-done cleanup, a human `review-conflict`). Only owned (agent/human) non-terminal stages must have a file.
-
-## The engine's hooks - the catalog
-
-Hooks wire engine-detected events into transitions, in the `hooks:` section. The engine recognizes exactly these (form → meaning):
-
-- `pr_merge <stage> <outcome>` - the stage's PR merged → resolve with `<outcome>`.
-- `pr_close <stage> <outcome>` - PR closed unmerged → `<outcome>`.
-- `pr_feedback <stage> <target>` - a comment/review landed → route to the `<target>` step to handle it.
-- `pr_conflict <stage> <outcome>` - the PR hit a merge conflict → `<outcome>`.
-- `pr_conflict_cap <stage> <N>` - resolve conflicts at most N times.
-- `pr_conflict_escalate <stage> <outcome>` - past the cap → `<outcome>` (usually a human step).
-- `ci_failed_cap <stage> <outcome> <N> <target>` - CI failed: use `<outcome>` up to N times, then route to `<target>`.
-- `mention_token <stage> <@token>` - the token in a PR comment that pings the human (e.g. `@lc`).
-- `review_bot_allowlist <stage> <bot>...` - review bots whose comments the engine acts on.
-
-The periodic retro audit is NOT a hook - it is an engine service that runs across all workflows automatically (any item that produces feedback gets audited), so you never wire it into a workflow.
-
-You rarely author these from nothing: copy the canonical bundle's whole hook block when adapting and change only what your pipeline needs. `signals:` (`<stage> <name> <decl>`) declare per-stage counters the caps read - copy them alongside the hooks they serve.
-
-## workflows/&lt;name&gt;.md - the rest of the grammar
-
-Beyond `entry`, `edges`, `hooks`, `signals`:
-
-- **Frontmatter** - a leading `---` block with `summary:` (one line: what the workflow does) and `when-to-use:` (one line: when to reach for it, like a skill's description). `lc workflow list` prints the summary; `lc workflow describe` shows both. `parse_graph` ignores the frontmatter, so the graph body follows the closing `---`. Write one for every workflow - it is how a driver picks between workflows in a multi-workflow origin.
-- `entry: <role>` - the first stage (needs a `steps/<role>.md`).
-- `requires: <artifact> ...` - artifacts the item must already carry to start; these satisfy the entry step's `accepts`.
-- `workspace: <repo-key>` - default worktree repo (usually `project`). Omit the value to open a per-stage `workspace:` section (`<stage> <repo-key>` lines) when a phase's worktree comes from a different repo (a spec phase in `specs`, code in `project`).
-- `phase:` - a per-stage section (`<stage> <phase>` lines) declaring which **PR-gate** each stage belongs to. A phase is an ordered gate with its own PR, branch, and worktree; stages that share a phase share all three, so every stage in one PR-segment must declare the same phase. It is **decoupled from `workspace:`** - two phases can run in the _same_ repo (a BDD flow's `feature` and `code` gates both in `project`), which is exactly what a plain repo/workspace split cannot express. Undeclared -> one unlabeled phase (a single PR), so simple one-gate workflows write no `phase:` at all. Declare a phase for every **owned** stage (an agent step or human gate - the stages that get a worktree/PR); a **fileless terminal** (a `cleanup`/`review-conflict` with no step file - see "Who runs a stage") is not a PR-gate and must **not** carry a phase, and the validator rejects a phase declared on a non-owned stage. `spec-driven` declares `spec` for its specs-workspace stages and `code` for the rest of its owned stages.
-- `nodes: <stage> <step-file>` - only when one step file serves two positions (e.g. `spec-open-pr` and `code-open-pr` both map to `open-pr`).
-
-For exact indentation and section order, mirror the canonical `spec-driven.md` - don't reconstruct the syntax from memory.
-
-## steps/&lt;role&gt;.md - the role's brief
-
-Frontmatter (`model`, `accepts`, `produces`) plus the system prompt. Study the canonical steps for the house style: terse ephemeral agents that **claim one step, do it in the worktree, `lc done` with a graph outcome, and exit**.
-
-- `lc claim <role>`; if nothing, say so and exit. The printed JSON is the step - read `.id`, `.parent`, `.workspace`, `.branch`, and the artifacts you `accept`.
-- Do all git work in `.workspace` (the isolated worktree lc created); never run git in the lightcycle root.
-- End with `lc done <STEP> <outcome>` where `<outcome>` is exactly an edge label from the graph.
-
-## The self-contained-bundle rule
-
-Steps are shared _within_ a bundle (two positions, one file) but duplicated _across_ sources. A source that wants `open-pr` behaviour copies the step in; it never reaches into another origin. The duplication is the price of pin integrity - do not factor it out.
-
-## Validate - to ship and to debug
-
-- `lc workflow add <url>` / `lc workflow upgrade <origin>` validates at pull time: contract compatibility, and every edge/hook target naming an owned step resolves to a real file (fileless terminals allowed). A dangling reference is refused before anything registers.
-- `lc workflow check <origin>/<name>` prints the assembled flow and checks composition: entry, routes, the `accepts`/`produces` contracts, and the `phase:` block. Run it after any change; a green `lc workflow check` is your proof the workflow is sound. (`lc workflow describe <origin>/<name>` shows the human-facing view - summary, when-to-use, phases, step roles.)
-
-When either rejects the bundle, the message names what failed - a missing step file, an unsatisfiable `accepts`, an unreachable stage. Fix the named thing; don't work around the validator.
+File it as an item on the **`workflow-authoring`** workflow, with its `repo` set to a workflow-origin repo. The pipeline's design/build/review steps carry the full craft, author the bundle, and gate it with `lc workflow check` + `lc workflow simulate`; `lc workflow describe --mermaid` then confirms the built graph matches the design. You shape the flow here; the pipeline builds and proves it.
