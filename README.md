@@ -13,6 +13,16 @@ The **engine** is a separate pipx-installed Python program (the pool, the store,
 
 **Prerequisite:** [`pipx`](https://pipx.pypa.io/) on your PATH. If it is missing the bootstrap prints a notice and does nothing else - install pipx and restart your session.
 
+## Getting started
+
+The canonical way onto a new machine:
+
+1. **Install the plugin** (above). Its SessionStart hook installs and initialises the `lc` engine for you (pipx + `lc init`) and keeps it current.
+2. **Invoke the `setup` skill.** It walks you through the rest - verifying prerequisites (`gh` / Claude login), pointing `lc` at your directories, and registering your repos in the project registry (discovering them with `lc project scan`), plus an optional personal workflow origin.
+3. **Invoke the `driver` skill to work.** Develop an idea into a brief, file it to the pipeline, and clear the human review gates (spec PRs, code `await-merge`) that surface in `lc inbox`.
+
+The session nudge points you at the right one: `setup` when no projects are registered yet, `driver` once you are set up.
+
 ## What it does
 
 - **Bootstrap (SessionStart hook).** Ensures the `lc` engine is installed and current: on a fresh machine it `pipx install`s lightcycle; where `lc` already exists it runs `lc upgrade` (the engine's own upgrade, which respects its pool-busy guard); then `lc init` (idempotent). Rate-limited to once a day so it is not a per-session network hit. It also emits a one-line nudge each session: `setup` on a machine with no registered projects, otherwise `driver`.
