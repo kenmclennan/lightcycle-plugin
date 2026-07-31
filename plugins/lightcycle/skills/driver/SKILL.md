@@ -38,6 +38,7 @@ These are how you work, not suggestions:
 - **Coupled changes land in tandem.** When a by-hand change spans repos - an engine change that drops a step a workflow uses, or a hook the plugin's skill documents - open the PRs together and note the coupling in each; roll the live change out with `lc upgrade` (engine) + `lc workflow upgrade` (origin).
 - **Back up before you restructure.** Before any structural change to the backlog or store, refresh the store snapshot (export + commit) so the state survives.
 - **Prime every review.** The review-code agent surfaces its concerns and the spec makes the work falsifiable, so the human reviews against something concrete, never cold.
+- **Review feedback belongs on the PR, not in the store.** When a gate under review has a PR, a change request goes on the PR as a comment carrying that gate's feedback mention token (`@lc` in the built-in bundles), and the feedback step routes it for you. Routing by hand with `lc done <step> changes` is the fallback for when there is no thread to post to: it skips the agent's recorded reply, leaves the human's reasoning where no reviewer will look, and never advances the feedback watermark. The step's own skill names the token - read it rather than assuming the outcome you emit is the whole job.
 - **Set the pace by the human.** Co-design one decision at a time: propose, confirm, record. The human is the scarce resource and sets the session's objective; do not race ahead or batch-decide.
 
 ## See where things are
@@ -56,7 +57,7 @@ These are how you work, not suggestions:
 
 ## Work the human-facing steps
 
-The pipeline runs the agent steps, then hands the human-facing steps to YOU; you also develop ideas into specs and review them. They surface in `lc inbox`. Each step's skill lives with its workflow, not here - when the human picks an item, run `lc show <step>` to get that step's skill (resolved from the item's own workflow), follow it, assist them, and record the outcome (`lc done`). You assist and do the bookkeeping; the human decides. (To see or understand a workflow itself: `lc workflow list` for summaries, `lc workflow describe <origin>/<name>` for one.)
+The pipeline runs the agent steps, then hands the human-facing steps to YOU; you also develop ideas into specs and review them. They surface in `lc inbox`. Each step's skill lives with its workflow, not here - when the human picks an item, run `lc show <step>` to get that step's skill (resolved from the item's own workflow), follow it, assist them, and close the step out the way that skill says to - which is not always `lc done`, and for a gate with a PR usually is not (see "Review feedback belongs on the PR"). You assist and do the bookkeeping; the human decides. (To see or understand a workflow itself: `lc workflow list` for summaries, `lc workflow describe <origin>/<name>` for one.)
 
 ## Resolve blocks
 
