@@ -11,13 +11,15 @@ The **engine** is a separate pipx-installed Python program (the pool, the store,
 /plugin install lightcycle@lightcycle
 ```
 
-**Prerequisite:** [`pipx`](https://pipx.pypa.io/) on your PATH. If it is missing the bootstrap prints a notice and does nothing else - install pipx and restart your session.
+**Prerequisites:** [`pipx`](https://pipx.pypa.io/) and `git`, both on your PATH. If either is missing the bootstrap stops with an error and installs nothing - install it and start a new session.
+
+**Installing does not run the bootstrap.** `/plugin install` does not fire SessionStart, so **start a new session** after installing. The first session installs the engine and runs `lc init`; if any of that fails it says so and retries on your next session rather than marking itself done.
 
 ## Getting started
 
 The canonical way onto a new machine:
 
-1. **Install the plugin** (above). Its SessionStart hook installs and initialises the `lc` engine for you (pipx + `lc init`) and keeps it current.
+1. **Install the plugin** (above), then start a new session. Its SessionStart hook installs the `lc` engine with pipx, runs `lc init`, and checks for an engine upgrade once a day. A failure at any of those steps is reported and retried next session.
 2. **Invoke the `setup` skill.** It walks you through the rest - verifying prerequisites (`gh` / Claude login), pointing `lc` at your directories, and registering your repos in the project registry (discovering them with `lc project scan`), plus an optional personal workflow origin.
 3. **Invoke the `driver` skill to work.** Develop an idea into a brief, file it to the pipeline, and clear the human review gates (spec PRs, code `await-merge`) that surface in `lc inbox`.
 
