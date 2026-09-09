@@ -47,7 +47,9 @@ plugins/lightcycle/
 │   └── bootstrap.sh                  # install / upgrade / init
 └── skills/
     ├── setup/SKILL.md
-    ├── driver/SKILL.md
+    ├── driver/
+    │   ├── SKILL.md
+    │   └── references/why.md      # level 3 - loaded on demand
     ├── author-workflow/SKILL.md
     └── autopilot/SKILL.md
 ```
