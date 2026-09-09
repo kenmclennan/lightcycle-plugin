@@ -32,6 +32,7 @@ The session nudge points you at the right one: `setup` when no projects are regi
   - `setup` - one-time machine onboarding: verify prerequisites, point `lc` at your directories, register your repos in the project registry (via `lc project scan`), and optionally create a personal workflow origin, then hand off to `driver`. Invoke it on a fresh machine.
   - `driver` - the human's seat for driving lightcycle: developing an idea into a brief, filing items to the pipeline, and clearing the human review gates (spec PRs, code await-merge) in `lc inbox`. Invoke it to drive a session.
   - `author-workflow` - co-design the shape of a workflow (its flow - stages, routes, hooks) before it is built; the authoring craft itself lives in the built-in workflow-authoring bundle's steps.
+  - `autopilot` - take over a scoped, bounded run of driving lightcycle unattended: a named scope agreed with the human up front, four exit conditions, and a spend ceiling. Invoke it before an unattended run starts.
 
 The plugin owns getting the engine onto the machine and keeping it current; the engine owns everything at runtime.
 
@@ -47,5 +48,6 @@ plugins/lightcycle/
 └── skills/
     ├── setup/SKILL.md
     ├── driver/SKILL.md
-    └── author-workflow/SKILL.md
+    ├── author-workflow/SKILL.md
+    └── autopilot/SKILL.md
 ```
