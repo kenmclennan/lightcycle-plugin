@@ -10,7 +10,13 @@ nudge() {
   if [ -z "$(lc project list 2>/dev/null)" ]; then
     echo "lightcycle: no projects registered on this machine yet - invoke the 'setup' skill to configure lightcycle and register your repos."
   else
-    echo "lightcycle: to drive work - develop a brief, file items to the pipeline, and clear the human review gates in 'lc inbox' - invoke the 'driver' skill."
+    raw="$(sed -n '/<!-- driver-contract:start -->/,/<!-- driver-contract:end -->/p' \
+      "${CLAUDE_PLUGIN_ROOT}/skills/driver/SKILL.md")"
+    if [ -z "$raw" ] || [ "$(printf '%s\n' "$raw" | tail -1)" != "<!-- driver-contract:end -->" ]; then
+      echo "lightcycle: driving contract markers not found in driver/SKILL.md - invoke the 'driver' skill directly." >&2
+      exit 1
+    fi
+    printf '%s\n' "$raw" | sed '1d;$d'
   fi
 }
 
