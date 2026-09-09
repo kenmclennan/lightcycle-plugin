@@ -9,18 +9,35 @@ Autopilot is how the driver runs unattended: a named scope, four exit conditions
 
 ## Agree the Scope Statement before starting
 
-Never assume a scope. Before any autonomous action, propose a Scope Statement and get the human's explicit agreement - the same propose-and-agree ceremony already used for workflow choice. It has exactly three parts:
+Never assume a scope. Before any autonomous action, propose a Scope Statement and get the human's explicit agreement - the same propose-and-agree ceremony already used for workflow choice. It has exactly four parts:
 
 1. **Named items** - the explicit item ids the human is handing over. Check each exists (`lc show <id>`) before the run starts.
 2. **In-flight snapshot** - the item ids already active or queued at the moment the run starts, captured once as a frozen list. Take the item-id prefix (the segment before the first `.`) from every id `lc active` and `lc queue` return, run once, unfiltered - never re-query this live during the run. Freezing it is what stops a live re-query from silently pulling in whatever the pool starts next.
 3. **Explicit negative** - the human's own exclusion, recorded verbatim (e.g. "no further remediation work"). Read every newly-discovered candidate against it before considering adding it to (1).
+4. **Merge authority** - explicit, no default: does the driver merge the run's own PRs directly, once each is green, rebased on `origin/main`'s tip, and every review comment is resolved (the same criteria `await-merge` already applies), or does every merge still wait for the human's own click even during this run? Record whichever the human states, verbatim. If granted, it authorizes only that mechanical merge, and only for items inside the Scope Statement's named-items and in-flight-snapshot sets - never a merge that turns on a judgement call not priced into this run (see "Never in scope, ever" rule 5), and never a mid-run arrival (see "Mid-run arrivals" below).
 
 Also agree, at the same time, as part of hand-over rather than discovered later:
 
 - A **spend ceiling** in dollars (see "Spend ceiling" below) - there is no default. A contested item can run 6-35x the cost of a clean one, so do not assume a figure.
-- That the **wake mechanism dies with this session** (see "The wake mechanism is session-bound" below).
+- That the watch (see "Arm the watch" below) will be started before anything else happens, and that it **dies with this session**: autopilot cannot resume itself across a session restart or a crash, and nothing pages the human if that happens.
 
 **Goal condition.** The run's goal is met when every item in (1) and (2) has reached a terminal state (`done`, or `backlogged` after triage - see "Mid-run arrivals" below) and nothing has been added to (1) beyond what that section permits. Check this by iterating the two lists against `lc show <id>`, the same bookkeeping weight phase-gating already carries.
+
+## Arm the watch before any autonomous action
+
+Agreeing the Scope Statement does not itself watch anything - it is a conversation, not a mechanism. Before filing or activating a single thing, start the watch: a running poll or monitor against `lc inbox`, `lc active`, and `lc queue`, using whatever primitive the driving session offers. This is a separate, checkable action with its own artifact (a scheduled wakeup, a monitor id, a running loop) - state that artifact back to the human as part of the hand-over, rather than only a promise to keep watch. The run has not started until it exists.
+
+Fire the watch on three conditions, watched together rather than any one in isolation:
+
+- **A gate arrives** - `lc inbox`'s relevant-state count increases: a new spec-PR review, an `await-merge`, a blocked/parked step, or a `review-findings` marker.
+- **A genuine stall** - nothing is active, nothing is queued, and `lc inbox` holds nothing for this scope either: work has stopped with no gate to show for it. Do not fire on "nothing is active" by itself - that is the ordinary state whenever a gate is already sitting in the inbox waiting on the driver, and a check that fires on it trains the driver to ignore the alert on the day it means something.
+- **The board empties** - active and queued both reach zero, regardless of the inbox: wake to check whether that means the goal condition is met or everything is quietly blocked.
+
+Poll on whatever cadence the driving session's primitive supports; there is no fixed interval to recommend here, for the same reason there is none for a stall timer.
+
+## File in batches, interleaved with driving
+
+Never file every named item's derived work before reviewing a single gate. File one named item's worth of work at a time, then return to `lc inbox` and work whatever has arrived before filing the next named item's batch. If a gate is already waiting when a batch's filing finishes, work it before filing another batch - the board should never run more than one named item's filing ahead of what has actually been reviewed.
 
 ## Exit conditions
 
@@ -28,8 +45,14 @@ All four produce the same five-section Resumption Report (see below); only the r
 
 1. **Goal met** - the Scope Statement's full set (named + snapshot) is terminal, with nothing added outside it.
 2. **Spend ceiling reached** - computed per "Spend ceiling" below, re-checked before every new item is allowed to start, not only at the end. Reaching it does not abort an item already in progress; it stops new activation and reports.
-3. **A decision only the human can make blocks all remaining in-scope progress** - every remaining item is waiting on it, or "Never in scope, ever" forbids proceeding without it. Surface the question the moment you find it, never batched. If the human is present in the same session, get the answer and continue without ending the run - this is the ordinary case, not an exit. The run only actually ends on this condition when the human is not present to answer and nothing else in scope can proceed without one.
+3. **A decision only the human can make blocks all remaining in-scope progress** - every remaining item is waiting on it, or "Never in scope, ever" forbids proceeding without it. Surface the question the moment you find it, never batched. If the human is present in the same session, get the answer and continue without ending the run - this is the ordinary case, not an exit. The run only actually ends on this condition when the human is not present to answer and nothing else in scope can proceed without one. This condition is about a decision blocking ALL remaining progress; a question that blocks nothing is never grounds for this exit - see "Non-blocking questions" below.
 4. **Explicit stop** - the human says stop, at any point, no ceremony required.
+
+## Non-blocking questions are decided, not escalated
+
+Exit condition 3 is for a decision that blocks everything remaining in scope. It says nothing about the far more common case: a question that blocks nothing, which feels safer to ask than to decide. During an unattended run it is not safer - asking stops the run dead until the human returns, for a question that was never actually in the run's way.
+
+During an unattended run, a question that does not block progress is not asked; it is decided, recorded on the item or the PR the question arose on, and reported at the next checkpoint (see "Checkpoint report" below). Where the skill's own text already answers the question, follow the skill rather than escalating the apparent contradiction.
 
 ## Mid-run arrivals: retros and findings
 
@@ -50,7 +73,7 @@ Never put either marker in the description's first 60 characters - `lc backlog`/
 2. **Reverting a decision the human made.** Retraction is the human's hand on the PR comment that withdraws a request, same as the driver skill's own standing discipline; autopilot does not manufacture that on the human's behalf.
 3. **Activating anything outside the Scope Statement's named-items set.** Covers "Mid-run arrivals" exactly, and any other new discovery mid-run.
 4. **Anything touching the loader/spawner/config boundary.** Already "substrate by hand" territory; autopilot inherits that rule rather than restating a copy that can drift.
-5. **A merge or a park resolution that turns on a judgement call not priced into the Scope Statement.** The Scope Statement authorizes the mechanical merges and filings the named items were filed to produce - it does not extend to a new judgement call surfacing mid-run. Authorization stands for the scope specified, not beyond it.
+5. **A merge or a park resolution that turns on a judgement call not priced into the Scope Statement.** Merge authority is scoped by the Scope Statement's fourth part (see "Agree the Scope Statement before starting") - granted or not, it covers only the mechanical merge of in-scope items, and never extends to a new judgement call surfacing mid-run. Authorization stands for the scope specified, not beyond it.
 6. **Raw process control.** `lc stop`'s kill path is already safe - each worker has its own process group, and the pool's own kill never signals its own group. Never reach around it with a direct `kill`/`killpg`.
 
 ## Spend ceiling
@@ -61,9 +84,17 @@ No CLI command sums cost across items or a session - `lc`'s cost lookup resolves
 
 Continue sending an item back for another round for as long as each round's rejection or change request names something genuinely new - a defect the prior round's fix did not address, or that the prior round's own request did not already raise. The moment a round repeats a prior ask or finds nothing new to add, that is the trigger to stop and escalate (exit condition 3) instead of sending it back again, regardless of how many rounds have already run. Do not apply a numeric cap - a converging item can legitimately take several rounds, each finding something genuinely new, and a naive count would wrongly escalate it. This is a session-level judgement layered on top of, and never a substitute for, the workflow's own `review_rounds`/`ci_failed_cap` engine hooks, which escalate independently regardless of what autopilot decides.
 
-## The wake mechanism is session-bound
+## Checkpoint report
 
-Hold a live watch on `lc inbox`-relevant state and pool activity for the run's duration, using whatever polling/monitor primitive the driving session offers, rather than burning attention on a fixed timer. State plainly, as part of agreeing the Scope Statement - not discovered later - that this mechanism dies with the session: autopilot cannot resume itself across a session restart or a crash, and nothing pages the human if that happens.
+Do not let the only report be the one at the end. Emit a checkpoint report at each merge, and at minimum once per named item that reaches a terminal state without one - whichever comes first - so a stretch with no merges still reports. Surface it through whatever channel this driving session normally uses to reach the human (a message, a posted note); do not leave it only in the session's own scrollback where nothing points the human at it.
+
+Content is a lighter version of the Resumption Report's vocabulary below:
+
+- **Merged** - since the last checkpoint, with PR links.
+- **In flight** - what is currently active or queued.
+- **Sent back or decided** - what was sent back and the new defect each round named, and any non-blocking question decided per "Non-blocking questions" above, with what was decided.
+- **Filed** - new ids since the last checkpoint, same split as the Resumption Report.
+- **Cost so far** - against the agreed ceiling.
 
 ## The Resumption Report
 
