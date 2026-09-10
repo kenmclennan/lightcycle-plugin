@@ -5,7 +5,7 @@ description: Set up lightcycle on a machine - the guided, first-time onboarding 
 
 # Set up lightcycle
 
-This is the one-time onboarding for a machine. The plugin's SessionStart hook has already installed the `lc` engine (pipx) and run `lc init` (seeding `~/.lightcycle` and pulling the built-in workflow origin); this skill does the interactive rest - prerequisites, config, registering repos, an optional personal workflow origin - and then hands off to the `driver` skill for actual work.
+This is the one-time onboarding for a machine. The plugin's SessionStart hook has already installed the `lc` engine (pipx) and run `lc init` (seeding `~/.lightcycle`; it pulls the built-in workflow origin only if `workflows-remote` is already configured, which a fresh install is not - step 1 below covers getting it configured); this skill does the interactive rest - prerequisites, config, registering repos, an optional personal workflow origin - and then hands off to the `driver` skill for actual work.
 
 **Drive the safe commands yourself; hand back only for what you cannot do.** Run the read-only checks and the `lc` commands directly, and act on what they show. The only two things you cannot do for the human are a **browser login** (`gh auth login`, signing into a Claude subscription) and an **interactive editor** - surface the exact command for those and wait. Work one step at a time; confirm before writing anything. No emdashes.
 
@@ -19,9 +19,11 @@ Run `lc doctor` (store + config + origin health) and check the prerequisites the
 
 Report a short checklist of pass/fail. For anything failing, give the exact fix; for the two logins (`gh auth login`, the Claude subscription) you cannot run them - surface the command and wait for the human to complete it.
 
+`lc doctor` reports a `"config"` problem naming `workflows-remote` when it is set but blank - a fresh install has no default anymore. If present, ask the human for their workflow source URL and run `lc workflow add <url> --name lightcycle` (`lightcycle` is the seeded default origin name).
+
 ## 2. Confirm config
 
-Run `lc config` and show where `projects`, `specs`, and `specs-remote` point (defaults are `~/workspace/{projects,specs}`). If they are correct and the directories exist, move on. If a value needs changing, propose the concrete value, confirm with the human, then write it into the config file (`~/.lightcycle/config`, or `$LC_CONFIG`) as a `key: value` line - this skips the `lc config --edit` editor hop, which you cannot drive. Do not invent values; ask if unsure.
+Run `lc config` and show where `projects` points (default `~/workspace/projects`). Run `lc project list` and show the `specs` project's path and remote. If they are correct and the directories exist, move on. If `projects` needs changing, propose the concrete value, confirm with the human, then write it into the config file (`~/.lightcycle/config`, or `$LC_CONFIG`) as a `key: value` line - this skips the `lc config --edit` editor hop, which you cannot drive. If `specs`'s path or remote needs changing, `lc project add` cannot target it (its identity isn't `owner/name`-shaped): write `specs`/`specs-remote` into the config file, run `lc project rm specs`, then `lc init` to re-register it from the new values. Do not invent values; ask if unsure.
 
 ## 3. Register your repos
 
