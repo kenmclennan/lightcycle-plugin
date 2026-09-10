@@ -70,7 +70,7 @@ Never put either marker in the description's first 60 characters - `lc backlog`/
 3. **Activating anything outside the Scope Statement's named-items set.** Covers "Mid-run arrivals" exactly, and any other new discovery mid-run.
 4. **Anything touching the loader/spawner/config boundary.** Already "substrate by hand" territory; autopilot inherits that rule rather than restating a copy that can drift.
 5. **A merge or a park resolution that turns on a judgement call not priced into the Scope Statement.** Merge authority is scoped by the Scope Statement's fourth part (see "Agree the Scope Statement before starting") - granted or not, it covers only the mechanical merge of in-scope items, and never extends to a new judgement call surfacing mid-run. Authorization stands for the scope specified, not beyond it.
-6. **Raw process control.** `lc stop`'s kill path is already safe - each worker has its own process group, and the pool's own kill never signals its own group. Never reach around it with a direct `kill`/`killpg`.
+6. **Raw process control.** The pool's own shutdown is already safe - interrupting `lc start` (Ctrl-C, or SIGTERM) runs it, each worker has its own process group, and the pool's kill never signals its own group. The engine has no `stop` verb. Never reach around the pool's shutdown with a direct `kill`/`killpg`; stopping the pool at all is the human's, per `lc start` being theirs to run.
 
 ## Cost
 
