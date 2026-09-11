@@ -31,8 +31,16 @@ if ! command -v git >/dev/null 2>&1; then
 fi
 
 if ! command -v pipx >/dev/null 2>&1; then
-  echo "lightcycle-plugin: pipx not found - install it (https://pipx.pypa.io/) and restart your session to get the lc engine." >&2
-  exit 1
+  if command -v brew >/dev/null 2>&1; then
+    brew install pipx >/dev/null 2>&1
+  elif command -v python3 >/dev/null 2>&1 && python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+    python3 -m pip install --user pipx >/dev/null 2>&1
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+  if ! command -v pipx >/dev/null 2>&1; then
+    echo "lightcycle-plugin: pipx not found and could not be installed automatically - install it (https://pipx.pypa.io/) and restart your session to get the lc engine." >&2
+    exit 1
+  fi
 fi
 
 if ! command -v lc >/dev/null 2>&1; then

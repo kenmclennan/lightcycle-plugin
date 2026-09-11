@@ -11,7 +11,7 @@ The **engine** is a separate pipx-installed Python program (the pool, the store,
 /plugin install lightcycle@lightcycle
 ```
 
-**Prerequisites:** [`pipx`](https://pipx.pypa.io/) and `git`, both on your PATH. If either is missing the bootstrap stops with an error and installs nothing - install it and start a new session.
+**Prerequisites:** [`pipx`](https://pipx.pypa.io/) and `git`, both on your PATH. Bootstrap installs `pipx` itself when it can - via Homebrew, or `pip` under Python 3.11+ - so most machines don't need it preinstalled. If `git` is missing, or `pipx` is missing and can't be installed automatically, the bootstrap stops with an error and installs nothing - install the missing piece and start a new session.
 
 **Installing does not run the bootstrap.** `/plugin install` does not fire SessionStart, so **start a new session** after installing. The first session installs the engine and runs `lc init`; if any of that fails it says so and retries on your next session rather than marking itself done.
 
