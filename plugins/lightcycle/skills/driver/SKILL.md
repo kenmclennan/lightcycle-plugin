@@ -97,3 +97,5 @@ An agent that cannot decide parks its step as `for:human`, carrying resume-state
 
 - `lc set STEP --state ready` - hand it back to the agent to retry, once you have cleared what it needs; or
 - finish the step yourself and emit its real outcome (e.g. you manually rebased and opened the PR for a stuck open-pr -> `lc done STEP done`).
+
+**Re-verify the park's premise before answering it, not just its condition.** `park.needs` records a question framed against facts as they stood when the step parked; anything that happened while it waited can invalidate that framing even though the question still reads as live and well-posed. If `STEP` has or had a `blocked_by` dependency, that is the sharpest case: the item filed to clear it is often exactly what changed the facts the question assumed. `lc show <that-item-id>` and read why the dependency existed - typically stated in its own spec or brief - before treating the parked question as still accurate, rather than answering it against a premise the blocking item existed to overturn. A stale question answered mechanically is worse than one left open: the answer looks considered and is confidently wrong.
