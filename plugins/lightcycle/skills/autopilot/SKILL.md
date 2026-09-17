@@ -58,7 +58,7 @@ The engine can fire a `review-findings` step on an audit/retro item mid-run, on 
 
 **Mark every filed item with one of two states, stated on the item itself:**
 
-- **A `DISCUSS:` title prefix**, when what to do about the finding is not yet settled. Pair it with a `## Before activating - discussion required` section in the description naming specifically what must be settled, and list deleting the item as a live option wherever that is genuinely on the table.
+- **A `DISCUSS:` title prefix**, only when what to do about the finding turns on what the human wants rather than something answerable by reading the code, running something, or measuring (the driver skill's open-question test) - and only after splitting off any part of the finding that is already settled into its own ready-to-build item. This marker is for a mid-run arrival under this heading; it is not a general license to withhold an ordinary filing elsewhere. Pair it with a `## Before activating - discussion required` section in the description naming specifically what must be settled, and list deleting the item as a live option wherever that is genuinely on the table.
 - **No prefix, with readiness stated explicitly** (e.g. "Ready to build - no discussion needed"), when the finding and its fix are both settled and the item needs no conversation before it becomes work.
 
 Never put either marker in the description's first 60 characters - `lc backlog`/`lc inbox` truncate a row's rendered description to that window, and a leading marker there would replace what the item is about. Where the workflow cannot yet be named because it depends on the discussion's outcome, its trailing `Workflow:` line reads `Workflow: undecided - see "Before activating"` rather than naming one prematurely.
