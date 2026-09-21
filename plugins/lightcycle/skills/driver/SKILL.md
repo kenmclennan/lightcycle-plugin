@@ -84,7 +84,7 @@ An item's `lc show` carries a `runs` list beside its steps. A **pass** is one tr
 
 ## Goals
 
-A **goal** is an outcome whose path is not linear: work bigger than one item, open-ended in a way an item cannot be, and impossible to enumerate up front. Items contribute toward it, but the goal is more than the sum of its items and is never a list of things to do. It is **not a node and not a workflow** - it has no state, never gates, queues or spawns anything, and the pool never sees it. `lc goal new | list | show | set | log | link | unlink | refresh`.
+A **goal** is an outcome whose path is not linear: work bigger than one item, open-ended in a way an item cannot be, and impossible to enumerate up front. Items contribute toward it, but the goal is more than the sum of its items and is never a list of things to do. It is **not a node and not a workflow** - it has no state, never gates, queues or spawns anything, and the pool never sees it. `lc goal new | list | show | set | log | link | unlink`.
 
 The design of record is the item [[LC-761]] - read it before changing how any of this works, rather than re-deriving it here.
 
@@ -106,7 +106,7 @@ The design of record is the item [[LC-761]] - read it before changing how any of
 - **An open question is not a heading and not a kind of thing.** It is the part of the description you cannot yet write as a statement - so write it where it belongs, in the problem or a constraint, worded as the uncertainty it is. Answering it is the same two moves as everything else: edit the description, log what settled it. A standing `## Open questions` list is the shape to avoid; it collects questions instead of resolving them, and it sat empty on the first two real goals.
 - **Linking an item is a judgement against the description**, not bookkeeping: `lc goal link <goal> <item>`. Ask whether this item moves that outcome. If the description does not settle it, that is a sign the description needs sharpening - do that rather than linking on a hunch. An item may serve several goals, and most items serve none.
 - **Status is three hand-set values** - `not started`, `in progress`, `done` - and nothing derives them: `lc goal set <goal> --status "in progress"`. There is no percentage complete and no item count that means finished. **Only the human closes a goal**; the engine never does, and neither do you. Their words: the end point is when they are satisfied it is hit.
-- **The state of play is generated, on demand, and only by the human's ask.** `lc goal refresh <goal>` writes a fresh one from the description, the log and the linked items; nothing regenerates it on a schedule. It is prose about where the goal stands, held to the same plain-language rule as every other generated text.
+- **You write where the goal stands; nothing generates it.** It is a section of the description like any other - a short passage saying where things are now and what most needs attention - and you rewrite it whenever that stops being true, with `lc goal set <goal> --description`. The context that makes it worth reading is yours: what was tried, what it told you, what you decided not to do. An agent reconstructing it from the log and the item list misses exactly that, and produces an ordered plan, which is the one shape a goal must never carry.
 - **Never present a goal's items as a plan.** No checklist, no sequence, no burndown, no health judgement. The path is discovered as the goal progresses; presenting it as ordered work is the thing a goal exists to avoid.
 
 ## Drive work in
