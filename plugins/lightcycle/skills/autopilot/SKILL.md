@@ -30,7 +30,7 @@ Fire the watch on three conditions, watched together rather than any one in isol
 - **A genuine stall** - nothing is active, nothing is queued, and `lc inbox` holds nothing for this scope either: work has stopped with no gate to show for it. Do not fire on "nothing is active" by itself - that is the ordinary state whenever a gate is already sitting in the inbox waiting on the driver, and a check that fires on it trains the driver to ignore the alert on the day it means something.
 - **The board empties** - active and queued both reach zero, regardless of the inbox: wake to check whether that means the goal condition is met or everything is quietly blocked.
 
-Poll on whatever cadence the driving session's primitive supports; there is no fixed interval to recommend here, for the same reason there is none for a stall timer.
+Arm two primitives, not one. An event monitor on `lc inbox` - a background loop that emits a line whenever a new in-scope gate id appears - is what wakes the driver within seconds of a gate arriving. A periodic check (a scheduled prompt or wakeup) is the backstop for the stall and empty-board conditions, which no new inbox line signals. A scheduled prompt fires only while the session is idle, so on its own a gate can wait a whole interval; a monitor expires on its own timeout and must be re-armed each time it does. State both artifacts back to the human. There is no fixed interval to recommend for the backstop, for the same reason there is none for a stall timer.
 
 ## File in batches, interleaved with driving
 
