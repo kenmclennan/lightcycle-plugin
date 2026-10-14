@@ -96,7 +96,7 @@ Content is a lighter version of the Resumption Report's vocabulary below:
 
 - **Merged** - since the last checkpoint, with PR links.
 - **In flight** - what is currently active or queued.
-- **Sent back or decided** - what was sent back and the new defect each round named, and any non-blocking question decided per "Non-blocking questions" above, with what was decided.
+- **Sent back or decided** - what was sent back and the new defect each round named, a round that corrected the driver's own earlier direction (a fix it proposed that was wrong, or a review claim it overstated) is marked as driver-caused, saying what the driver got wrong, and any non-blocking question decided per "Non-blocking questions" above, with what was decided.
 - **Filed** - new ids since the last checkpoint, same split as the Resumption Report.
 - **Cost so far** - total spend across items touched this run so far (per "Cost" above).
 
@@ -105,7 +105,7 @@ Content is a lighter version of the Resumption Report's vocabulary below:
 Every exit produces the same five sections, headed by which exit condition fired:
 
 - **Merged** - what, with PR links.
-- **Sent back** - what, and the specific new defect each round's request named, not just "changes requested."
+- **Sent back** - what, and the specific new defect each round's request named, not just "changes requested." A round that corrected the driver's own earlier direction (a fix it proposed that was wrong, or a review claim it overstated) is marked as driver-caused, saying what the driver got wrong, so the item does not read as troublesome for the driver's mistake. This stays inside "Sent back"; the report keeps exactly five sections.
 - **Filed** - what, with new ids, split by kind: which carry the `DISCUSS:` marker and are waiting on the human's judgement, and which are stated ready to build outright - and, for all of them, that they landed in the backlog, never activated.
 - **Deliberately not done** - what was in scope but left, and why: blocked on a never-in-scope call, or the run ended first.
 - **Cost** - total spend across every item touched this run (per "Cost" above).
