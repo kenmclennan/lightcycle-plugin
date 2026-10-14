@@ -12,7 +12,7 @@ Autopilot is how the driver runs unattended: a named scope, three exit condition
 Never assume a scope. Before any autonomous action, propose a Scope Statement and get the human's explicit agreement - the same propose-and-agree ceremony already used for workflow choice. It has exactly four parts:
 
 1. **Named items** - the explicit item ids the human is handing over. Check each exists (`lc show <id>`) before the run starts.
-2. **In-flight snapshot** - the item ids already active or queued at the moment the run starts, captured once as a frozen list. Take the item-id prefix (the segment before the first `.`) from every id `lc active` and `lc queue` return, run once, unfiltered - never re-query this live during the run. Freezing it is what stops a live re-query from silently pulling in whatever the pool starts next.
+2. **In-flight snapshot** - the item ids already active or queued at the moment the run starts, captured once as a frozen list. Take the item-id prefix (the segment before the first `.`) from every id `lc active` and `lc queue` return, run once, unfiltered - never re-query this live during the run. `lc queue` shows only 10 rows by default, so an unfiltered run silently drops anything past row 10: pass a large row count (`lc queue <large N>`) or use `lc status --json`. Freezing it is what stops a live re-query from silently pulling in whatever the pool starts next.
 3. **Explicit negative** - the human's own exclusion, recorded verbatim (e.g. "no further remediation work"). Read every newly-discovered candidate against it before considering adding it to (1).
 4. **Merge authority** - explicit, no default: does the driver merge the run's own PRs directly, once each is green, rebased on `origin/main`'s tip, and every review comment is resolved (the same criteria `await-merge` already applies), or does every merge still wait for the human's own click even during this run? Record whichever the human states, verbatim. If granted, it authorizes only that mechanical merge, and only for items inside the Scope Statement's named-items and in-flight-snapshot sets - never a merge that turns on a judgement call not priced into this run (see "Never in scope, ever" rule 5), and never a mid-run arrival (see "Mid-run arrivals" below).
 
@@ -30,7 +30,7 @@ Fire the watch on three conditions, watched together rather than any one in isol
 - **A genuine stall** - nothing is active, nothing is queued, and `lc inbox` holds nothing for this scope either: work has stopped with no gate to show for it. Do not fire on "nothing is active" by itself - that is the ordinary state whenever a gate is already sitting in the inbox waiting on the driver, and a check that fires on it trains the driver to ignore the alert on the day it means something.
 - **The board empties** - active and queued both reach zero, regardless of the inbox: wake to check whether that means the goal condition is met or everything is quietly blocked.
 
-Arm two primitives, not one. An event monitor on `lc inbox` - a background loop that emits a line whenever a new in-scope gate id appears - is what wakes the driver within seconds of a gate arriving. A periodic check (a scheduled prompt or wakeup) is the backstop for the stall and empty-board conditions, which no new inbox line signals. A scheduled prompt fires only while the session is idle, so on its own a gate can wait a whole interval; a monitor expires on its own timeout and must be re-armed each time it does. State both artifacts back to the human. There is no fixed interval to recommend for the backstop, for the same reason there is none for a stall timer.
+Arm two primitives, not one. An event monitor on `lc inbox` - a background loop that emits a line whenever a new in-scope gate id appears - is what wakes the driver within seconds of a gate arriving. While a `handle-feedback` step is open, the gate it watches is hidden from `lc inbox`, and the same gate can return with the same id - so a monitor that fires only on ids it has never seen misses it. Diff consecutive polls instead. A periodic check (a scheduled prompt or wakeup) is the backstop for the stall and empty-board conditions, which no new inbox line signals. A scheduled prompt fires only while the session is idle, so on its own a gate can wait a whole interval; a monitor expires on its own timeout and must be re-armed each time it does. State both artifacts back to the human. There is no fixed interval to recommend for the backstop, for the same reason there is none for a stall timer.
 
 ## File in batches, interleaved with driving
 
@@ -42,7 +42,7 @@ All three produce the same five-section Resumption Report (see below); only the 
 
 1. **Goal met** - the Scope Statement's full set (named + snapshot) is terminal, with nothing added outside it.
 2. **A decision only the human can make blocks all remaining in-scope progress** - every remaining item is waiting on it, or "Never in scope, ever" forbids proceeding without it. Surface the question the moment you find it, never batched. If the human is present in the same session, get the answer and continue without ending the run - this is the ordinary case, not an exit. The run only actually ends on this condition when the human is not present to answer and nothing else in scope can proceed without one. This condition is about a decision blocking ALL remaining progress; a question that blocks nothing is never grounds for this exit - see "Non-blocking questions" below.
-3. **Explicit stop** - the human says stop, at any point, no ceremony required.
+3. **Explicit stop** - the human says stop, at any point, no ceremony required. "Stop" ends the autopilot run; it is not a request for the driver to run `lc stop`.
 
 ## Non-blocking questions are decided, not escalated
 
@@ -50,11 +50,11 @@ Exit condition 2 is for a decision that blocks everything remaining in scope. It
 
 During an unattended run, a question that does not block progress is not asked; it is decided, recorded on the item or the PR the question arose on, and reported at the next checkpoint (see "Checkpoint report" below). Where the skill's own text already answers the question, follow the skill rather than escalating the apparent contradiction.
 
-## Mid-run arrivals: retros and findings
+## Mid-run arrivals: retros, audits and findings
 
-The engine can fire a `review-findings` step on an audit/retro item mid-run, on its own, with no human involved in filing it - visible in plain `lc inbox` text by its distinct `findings:<excerpt>` suffix (a clean audit produces no step and nothing to see). This is the concrete event, not a vague "something new arrived."
+The engine can fire a `review-findings` step on an audit/retro item mid-run, on its own, with no human involved in filing it - visible in plain `lc inbox` text by its distinct `findings:` suffix, which is a pointer (`findings: lc show <audit step>`), not a summary - read the audit step's `findings` artifact with `lc show` to learn what they are (a clean audit produces no step and nothing to see). Retros are not the only source: the periodic `material-audit` (every `material-audit-days`) also lands findings at `review-findings`. A material-audit finding is a guidance-repo PR the driver drafts only after discussing it with the human, so unattended, record it as `DISCUSS:` or leave it for the human - never draft or merge a guidance PR alone. This is the concrete event, not a vague "something new arrived."
 
-**Rule: a `review-findings` step is always worked, but what it surfaces is never automatically in scope.** Read the note. Search the backlog first (the driver's existing "search before you file" discipline). If it names nothing new, close it out. If it names a genuine gap, file it into the backlog and stop there - never activate it in the same motion, no matter how urgent it looks. Activating it is a scope change, and only the human makes those (see "Never in scope, ever").
+**Rule: a `review-findings` step is always worked, but what it surfaces is never automatically in scope.** Read the note. Search the backlog first (the driver's existing "search before you file" discipline). If it names nothing new, close it out. If it names a genuine gap, file it into the backlog and stop there - never activate it in the same motion, no matter how urgent it looks. Activating it is a scope change, and only the human makes those (see "Never in scope, ever"). `review-findings` accepts only the outcomes `done`, `filed` or `reviewed`, and `lc done` refuses anything else: close with `filed` after filing, otherwise `reviewed`. `lc show <step>`'s `valid_outcomes` lists what is accepted.
 
 **Mark every filed item with one of two states, stated on the item itself:**
 
@@ -70,7 +70,7 @@ Never put either marker in the description's first 60 characters - `lc backlog`/
 3. **Activating anything outside the Scope Statement's named-items set.** Covers "Mid-run arrivals" exactly, and any other new discovery mid-run.
 4. **Anything touching the loader/spawner/config boundary.** Already "substrate by hand" territory; autopilot inherits that rule rather than restating a copy that can drift.
 5. **A merge or a park resolution that turns on a judgement call not priced into the Scope Statement.** Merge authority is scoped by the Scope Statement's fourth part (see "Agree the Scope Statement before starting") - granted or not, it covers only the mechanical merge of in-scope items, and never extends to a new judgement call surfacing mid-run. Authorization stands for the scope specified, not beyond it.
-6. **Raw process control.** The pool's own shutdown is already safe - interrupting `lc start` (Ctrl-C, or SIGTERM) runs it, each worker has its own process group, and the pool's kill never signals its own group. The engine has no `stop` verb. Never reach around the pool's shutdown with a direct `kill`/`killpg`; stopping the pool at all is the human's, per `lc start` being theirs to run.
+6. **Raw process control.** The pool's own shutdown is already safe - interrupting `lc start` (Ctrl-C, or SIGTERM) runs it, each worker has its own process group, and the pool's kill never signals its own group. `lc stop` signals a detached pool, and `lc stop --drain` spawns nothing new and exits once no worker is alive; these are the safe routes. Never reach around them with a direct `kill`/`killpg`; stopping the pool at all stays the human's call, per `lc start` being theirs to run.
 
 ## Cost
 
@@ -78,7 +78,15 @@ No CLI command sums cost across items or a session - `lc`'s cost lookup resolves
 
 ## Rework: a new-defect test
 
-Continue sending an item back for another round for as long as each round's rejection or change request names something genuinely new - a defect the prior round's fix did not address, or that the prior round's own request did not already raise. The moment a round repeats a prior ask or finds nothing new to add, that is the trigger to stop and escalate (exit condition 2) instead of sending it back again, regardless of how many rounds have already run. Do not apply a numeric cap - a converging item can legitimately take several rounds, each finding something genuinely new, and a naive count would wrongly escalate it. A review-rejection loop has no engine backstop today: `ci_failed_cap` is real and escalates a CI-failure loop independently of autopilot, but no workflow declares an equivalent cap on rejections, so this new-defect test is the only thing bounding one.
+Two rework loops have no cap at all: `review-code rejected -> write-code` and the human `code-await-merge changes`. This new-defect test is the only thing bounding them. Continue sending an item back for another round for as long as each round's rejection or change request names something genuinely new - a defect the prior round's fix did not address, or that the prior round's own request did not already raise. The moment a round repeats a prior ask or finds nothing new to add, that is the trigger to stop and escalate (exit condition 2) instead of sending it back again, regardless of how many rounds have already run. Do not apply a numeric cap - a converging item can legitimately take several rounds, each finding something genuinely new, and a naive count would wrongly escalate it. The capped loops have an engine backstop: `ci_failed_cap` is real and escalates a CI-failure loop independently of autopilot, and every workflow declares `review_rounds_cap` on `watch-ci review-rework ... review-ci` (the `review-rounds-cap` config key).
+
+## Reading a writer's decisions at a gate
+
+`open-pr` quotes the previous step's closing note in the PR body under `## Closing note from <stage>`, and that note must name any deviation from the spec or brief. Read it there: it is where a writer's decisions surface at a gate.
+
+## Sequencing engine and workflow items
+
+A workflow item that uses a new engine field needs the origin's CI `ENGINE_PIN` bumped first. Follow the driver skill's rule on an item gated on an engine release also needing the origin's CI pin past it, rather than restating it here.
 
 ## Checkpoint report
 
