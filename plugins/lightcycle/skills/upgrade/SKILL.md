@@ -9,6 +9,15 @@ An engine upgrade replaces the program but leaves operator-owned state as it was
 
 **Nothing changes without the human's word.** Read and report freely; before writing a config value, opening a PR or filing an item, say what you will do and wait for a yes. Never invent a config value - ask.
 
+## 0. A blocked engine upgrade
+
+If the SessionStart hook says `lc upgrade` did not complete, or `lc upgrade` exits 1 naming workflow origins, an installed workflow bundle's `requires-engine` excludes the new engine; restarting never clears it. Read the output: it names each blocking origin and its requirement. There are two routes, and the human picks:
+
+- `lc workflow upgrade` for those origins, which pulls a bundle that fits the new engine. Then re-run `lc upgrade`.
+- `lc upgrade --force` when no compatible bundle exists yet. This installs an engine the bundle does not declare support for, so say so before running it.
+
+Once `lc upgrade` succeeds, carry on with the findings below.
+
 ## 1. Read the findings
 
 Run `lc doctor --json`. It prints `{category: [finding, ...]}`; each finding has `category` and `message`, and an upgrade finding also has a stable `kind` and a `fix`. Keep the findings that carry a `kind`: those are this skill's. Any other finding is ordinary health (a stale pin, an orphan, a missing facet page) - report it, but it is not an upgrade finding; point at `driver` for pins and bookkeeping.
