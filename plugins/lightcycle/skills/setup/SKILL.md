@@ -35,7 +35,7 @@ Run `lc config` and show where `projects` points (default `~/workspace/projects`
 `trusted-authors` is the list of GitHub logins whose PR comments the pool acts on; blank, it acts on none. `lc init` seeds it with your `gh` login only when `gh` is authenticated, and never overwrites it - and the SessionStart hook runs it before you have done `gh auth login`, so it may be unset. `lc doctor` reports a blank one as `required config key 'trusted-authors' is set but blank`.
 
 1. Once `gh auth login` is done, re-run `lc init` (or write a `trusted-authors:` line into the config file) and confirm with `lc config` that it holds your login, before the pool starts.
-2. Ask which teammates and review bots to add (for example `copilot-pull-request-reviewer[bot]`). No bot is trusted by default. Set the key in the config file only - never in a workflow bundle.
+2. Ask which teammates and review bots to add (for example Copilot, which takes both logins: `Copilot` for its line comments and `copilot-pull-request-reviewer[bot]` for its reviews). A review bot can post under more than one login, so check the authors on its real comments. No bot is trusted by default. Set the key in the config file only - never in a workflow bundle.
 3. Explain held comments: a comment from an untrusted author becomes an `HLD-` item with a `review-held-comment` step in `lc inbox`; the human decides it with `lc done <step> approve|reject`.
 
 ## 3. Register your repos
