@@ -65,8 +65,8 @@ fi
 
 if command -v lc >/dev/null 2>&1; then
   if ! lc upgrade; then
-    echo "lightcycle-plugin: 'lc upgrade' failed - the engine may be out of date. Re-run by restarting your session."
-    exit 0
+    upgrade_failed=1
+    echo "lightcycle-plugin: 'lc upgrade' did not complete - see its output above; if it names workflow origins whose required engine version excludes the new engine, run 'lc workflow upgrade' for those origins, or 'lc upgrade --force' if no compatible bundle exists. The 'upgrade' skill can walk you through it."
   fi
 else
   if ! pipx install "$REPO"; then
@@ -86,6 +86,6 @@ if ! lc init; then
   exit 0
 fi
 
-touch "$STAMP" 2>/dev/null
+[ -z "$upgrade_failed" ] && touch "$STAMP" 2>/dev/null
 nudge
 exit 0
