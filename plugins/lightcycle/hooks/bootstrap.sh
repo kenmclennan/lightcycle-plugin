@@ -3,15 +3,28 @@
 REPO="git+https://github.com/kenmclennan/lightcycle"
 STAMP_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.lightcycle}"
 STAMP="$STAMP_DIR/.plugin-bootstrap-checked"
+VERSION_FILE="$STAMP_DIR/.plugin-engine-version"
 
 mkdir -p "$STAMP_DIR" 2>/dev/null
+
+upgrade_hint() {
+  seen="$(lc --version 2>/dev/null | head -1)"
+  [ -z "$seen" ] && return
+  last="$(cat "$VERSION_FILE" 2>/dev/null)"
+  if [ "$seen" != "$last" ]; then
+    echo "lightcycle: the engine is now $seen (was: ${last:-not recorded}) - invoke the 'upgrade' skill to bring this machine up to date."
+    printf '%s\n' "$seen" > "$VERSION_FILE" 2>/dev/null
+  fi
+}
 
 nudge() {
   if [ -z "$(lc project list 2>/dev/null | cut -f1 | grep -v -x -e specs -e guidance)" ]; then
     echo "lightcycle: no projects registered on this machine yet - invoke the 'setup' skill to configure lightcycle and register your repos."
   elif lc doctor 2>/dev/null | grep -q "trusted-authors.*blank"; then
+    upgrade_hint
     echo "lightcycle: trusted-authors is blank, so the pool acts on no PR comments - invoke the 'setup' skill to set it."
   else
+    upgrade_hint
     raw="$(sed -n '/<!-- driver-contract:start -->/,/<!-- driver-contract:end -->/p' \
       "${CLAUDE_PLUGIN_ROOT}/skills/driver/SKILL.md")"
     if [ -z "$raw" ] || [ "$(printf '%s\n' "$raw" | tail -1)" != "<!-- driver-contract:end -->" ]; then
