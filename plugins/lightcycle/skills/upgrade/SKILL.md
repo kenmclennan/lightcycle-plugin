@@ -34,7 +34,7 @@ For `trusted-authors` (the GitHub logins whose PR comments the pool acts on; bla
 
 ## 3. `guidance-conventions-outdated` - file a guidance-entry item
 
-The guidance repo's `CONVENTIONS.md` records an older conventions version than the engine ships. Do not hand-make a guidance PR: the update is filed as a `guidance-entry` item (section 5) and the pipeline opens the PR. Find the repo with `lc guidance-dir`. The brief says to bring `CONVENTIONS.md` to the engine's current conventions; until `lc guidance-conventions` (LC-1086) lands, it cites the engine's `guidance/conventions.py` as the source. One item may carry both this update and the backfill in section 4.
+The guidance repo's `CONVENTIONS.md` records an older conventions version than the engine ships. Do not hand-make a guidance PR: the update is filed as a `guidance-entry` item (section 5) and the pipeline opens the PR. Find the repo with `lc guidance-dir`. The brief says to bring `CONVENTIONS.md` to the engine's current conventions; it cites `lc guidance-conventions` as the source of the current conventions text. One item may carry both this update and the backfill in section 4.
 
 ## 4. `guidance-entries-nonconforming` - file a backfill
 
