@@ -9,6 +9,8 @@ mkdir -p "$STAMP_DIR" 2>/dev/null
 nudge() {
   if [ -z "$(lc project list 2>/dev/null | cut -f1 | grep -v -x -e specs -e guidance)" ]; then
     echo "lightcycle: no projects registered on this machine yet - invoke the 'setup' skill to configure lightcycle and register your repos."
+  elif lc doctor 2>/dev/null | grep -q "trusted-authors.*blank"; then
+    echo "lightcycle: trusted-authors is blank, so the pool acts on no PR comments - invoke the 'setup' skill to set it."
   else
     raw="$(sed -n '/<!-- driver-contract:start -->/,/<!-- driver-contract:end -->/p' \
       "${CLAUDE_PLUGIN_ROOT}/skills/driver/SKILL.md")"

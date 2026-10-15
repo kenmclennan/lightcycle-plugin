@@ -5,7 +5,7 @@ description: Set up lightcycle on a machine - the guided, first-time onboarding 
 
 # Set up lightcycle
 
-This is the one-time onboarding for a machine. The plugin's SessionStart hook has already installed the `lc` engine (pipx) and run `lc init` (seeding `~/.lightcycle` and creating and registering the `specs` and `guidance` projects; it pulls the built-in workflow origin only if `workflows-remote` is already configured, which a fresh install is not - step 1 below covers getting it configured); this skill does the interactive rest - prerequisites, config, registering repos, an optional personal workflow origin, starting the pool - and then hands off to the `driver` skill for actual work.
+This is the one-time onboarding for a machine. The plugin's SessionStart hook has already installed the `lc` engine (pipx) and run `lc init` (seeding `~/.lightcycle`, creating and registering the `specs` and `guidance` projects, and seeding `trusted-authors` from your `gh` login only when `gh` is authenticated - on a fresh machine it usually is not yet, so the "Trusted authors" section below re-checks it; it pulls the built-in workflow origin only if `workflows-remote` is already configured, which a fresh install is not - step 1 below covers getting it configured); this skill does the interactive rest - prerequisites, config, registering repos, an optional personal workflow origin, starting the pool - and then hands off to the `driver` skill for actual work.
 
 **Drive the safe commands yourself; hand back only for what you cannot do.** Run the read-only checks and the `lc` commands directly, and act on what they show. The only two things you cannot do for the human are a **browser login** (`gh auth login`, signing into a Claude subscription) and an **interactive editor** - surface the exact command for those and wait. Work one step at a time; confirm before writing anything. No emdashes.
 
@@ -29,6 +29,14 @@ Run `lc config` and show where `projects` points (default `~/workspace/projects`
 **Moving `specs`.** `lc project add` cannot target it (its identity isn't `owner/name`-shaped). Write `specs`/`specs-remote` into the config file, run `lc project rm specs`, then `lc init` to re-register it from the new values, then delete both `specs` and `specs-remote` from the config file - left behind they are obsolete, and `lc doctor` reports them as "set but not read by this version".
 
 **The guidance repo.** `lc init` creates and registers one (default `~/workspace/agent-guidance`; `lc init --guidance-path <dir>` overrides it); `lc guidance-dir [--check]` prints the registered path and verifies its `origin`. To adopt a team's shared guidance repo instead: `lc project rm guidance`, clone the repo to the target path, then `lc init --guidance-path <dir>`.
+
+## Trusted authors
+
+`trusted-authors` is the list of GitHub logins whose PR comments the pool acts on; blank, it acts on none. `lc init` seeds it with your `gh` login only when `gh` is authenticated, and never overwrites it - and the SessionStart hook runs it before you have done `gh auth login`, so it may be unset. `lc doctor` reports a blank one as `required config key 'trusted-authors' is set but blank`.
+
+1. Once `gh auth login` is done, re-run `lc init` (or write a `trusted-authors:` line into the config file) and confirm with `lc config` that it holds your login, before the pool starts.
+2. Ask which teammates and review bots to add (for example `copilot-pull-request-reviewer[bot]`). No bot is trusted by default. Set the key in the config file only - never in a workflow bundle.
+3. Explain held comments: a comment from an untrusted author becomes an `HLD-` item with a `review-held-comment` step in `lc inbox`; the human decides it with `lc done <step> approve|reject`.
 
 ## 3. Register your repos
 
