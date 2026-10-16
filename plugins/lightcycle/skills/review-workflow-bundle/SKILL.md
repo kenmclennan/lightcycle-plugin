@@ -26,6 +26,16 @@ Read every workflow file and every step file in the bundle, in full, plus every 
 
 Read for intent. A threshold hit is a signal to read closer, and a deliberate, noted copy is not a defect. Say so when you leave something alone, if the criteria name that case.
 
+## Scripts and lifecycle hooks
+
+When the bundle has a `scripts/` tree, a `script:` stage, a `guard: script:` schedule or a `lifecycle:` block, read each script in full as well. The criteria cover steps and workflow files, so judge these against the engine's script contract (`docs/ontology.md`, "script contract" and "lifecycle hook"; `lc workflow check --dir <bundle>` covers the mechanical part: paths under `scripts/`, executable, declared outcomes, a fixture for each script):
+
+- **Tests.** Each script has a test under `scripts/tests/`, and the bundle's CI runs them. Neither `check` nor `simulate` does.
+- **Writes only to the data directory.** The script runs with the data directory as its working directory. Flag any write elsewhere: an absolute path, `~`, the bundle directory, or a git worktree the stage did not declare.
+- **No secrets.** No token, password or key in a script, a fixture, a `config-example` value or a test. Secrets belong in the operator's `workflow-<origin>-<name>:` config block, read from the `LC_WORKFLOW_CONFIG_<KEY>` environment variable.
+- **Every outcome reachable in simulate.** Each outcome the stage declares has an entry in the script's fixture (`scripts/fixtures/<path after scripts/>.json`; a guard's keys are `pass` and `fail`), and the script can print each one. Flag a declared outcome no code path produces.
+- **Idempotent.** Delivery is at-least-once, and hooks must be safe to run twice.
+
 ## 4. Report
 
 Report each finding in the conversation, most serious first:

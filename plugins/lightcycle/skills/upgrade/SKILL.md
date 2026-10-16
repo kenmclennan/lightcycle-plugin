@@ -32,6 +32,12 @@ The finding names the key and what it does. Explain it in a sentence, ask the hu
 
 For `trusted-authors` (the GitHub logins whose PR comments the pool acts on; blank, it acts on none) follow the `setup` skill's "Trusted authors" section: the human's own login, then teammates and review bots, set in the config file only.
 
+## Workflow config keys and failed hooks
+
+A required key of a workflow's own config block is not an upgrade finding: `lc doctor` reports it as an ordinary `config` problem with no `kind`, naming the key and the block (`workflow-<origin>-<name>:`). Ask the human for the value and write it into that block, as in section 2.
+
+`lc workflow upgrade` runs the workflow's `upgrade` hook before it records the new SHA. If the hook fails, the origin stays at its old SHA and `lc workflow list` still shows the old pin. Read the command's output to see why: the hook's stdout and stderr are merged into it, and a hook that runs past `lifecycle-timeout-seconds` counts as failed. Fix the cause, then re-run `lc workflow upgrade`. A failed first `install` leaves the origin unregistered in the same way.
+
 ## 3. `schedule-not-enabled` - choose a project, then write the block
 
 A built-in job, such as the retro audit, the material audit or the daily summary, now runs as a scheduled workflow, and none is enabled for this machine. Ask which registered project (`lc project list`) the schedule should use. Show the suggested cron and guard from `lc schedule list`, and let the human adjust them. Confirm the result back, then write the `schedule-<id>` block to the config file as the finding's `fix` shows, and check it with `lc schedule list`. A workflow already enabled under any id counts as enabled, so never add a second block for it.
