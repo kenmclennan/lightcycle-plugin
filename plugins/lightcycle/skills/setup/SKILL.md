@@ -54,6 +54,8 @@ A repo that lives outside the scanned tree can be registered directly with `lc p
 
 Ask whether the human wants their own workflow origin (a pullable repo of their own `lc` workflows, separate from the built-in `lightcycle` one). If yes, `lc workflow init <name>` scaffolds it at `<projects>/<name>`, registers it as a writable source, and sets it as the personal origin. It is local only: no GitHub remote and no project registration. To build in it through `workflow-authoring`, add a remote and run `lc project add` for it. To adopt an origin that already exists, run `lc workflow add <url> --writable`; toggle later with `lc workflow set <origin> --writable|--read-only`. If they only need the built-in workflows, skip this.
 
+A workflow can declare config keys of its own. `lc doctor` reports a required one that is missing or blank as `workflow <origin>/<name> needs config key '<key>' in block '<block>'`. The block is named `workflow-<origin>-<name>:` and is written into the config file like a `schedule-<id>` block; ask the human for each value, never invent one, and confirm with `lc config` and `lc doctor`. Adding such an origin runs the workflow's `install` hook first. If `lc workflow add` fails, the origin is not registered: read the command's output (the hook's stdout and stderr are merged into it), fix the cause it names, and re-run. `lc workflow list` shows what was registered.
+
 ## 5. Start the pool
 
 Run `lc start --detach` to start the pool in the background, or `lc tui --start` (engine 0.6.299+) to start it and open the dashboard. Mention `developer-mode` (`lc config`) only for a machine that develops lightcycle itself.
