@@ -60,13 +60,17 @@ The guidance repo's `CONVENTIONS.md` records an older conventions version than t
 
 The finding counts the entries on the guidance repo's default branch that fail the current conventions (for example no `purpose`, `when` or `why`) and names the first few. Several entries are one backfill, not one item each. When both findings are present, file one item that carries the conventions update and then the backfill, so the backfill is written against the current rules.
 
-## 6a. `guidance-entry-reverted` - file a verify item
+## 6a. `guidance-entry-reverted` - file a restore item
 
-An entry is `draft` on the guidance repo's default branch but was `stable` in its last 200 commits, so it is no longer delivered to agents. Read the finding's `message` for the entry ids. The fix is a `guidance-entry` item (section 7) that verifies each entry again, so it is delivered once more. Do not edit the entry by hand.
+An entry is `draft` on the guidance repo's default branch but was `stable` in its last 200 commits, so it is no longer delivered to agents. Read the finding's `message` for the entry ids. The fix is a `guidance-entry` item (section 7) that restores `status: stable` on each named entry; merging its PR delivers them again. Do not edit the entry by hand.
+
+## 6b. `guidance-shortcode-missing` - set the shortcode on the human's word
+
+The `guidance` project is registered without an id shortcode, so `--project guidance` cannot mint ids. The fix is `lc project set guidance --shortcode <the configured guidance-shortcode>`; read the value from `lc config` (seeded `GDN`). Ids cannot change once items exist under a shortcode, so run it only after the human says so, and show them the exact command first.
 
 ## 7. Filing the item
 
-A conventions update or data backfill is filed as an item, never done by hand in the repo. Follow the `driver` skill's filing rules: `lc search` for a duplicate first, then `lc new item "<title>" --workflow lightcycle/guidance-entry --repo guidance --project <the operator's own project> --description "<brief>"`. `--repo guidance` is the built-in repo name `lc project list` shows, and `--project` is the operator's own project (never `guidance`). Confirm the workflow origin with `lc workflow list`. The brief names the failing files and what each is missing, and the conventions update when section 5 applies. Agree the workflow, the project and whether to activate it now with the human before filing.
+A conventions update or data backfill is filed as an item, never done by hand in the repo. Follow the `driver` skill's filing rules: `lc search` for a duplicate first, then `lc new item "<title>" --workflow lightcycle/guidance-entry --repo guidance --project guidance --description "<brief>"`. `--repo guidance` is the built-in repo name `lc project list` shows, and `--project guidance` mints `GDN-` ids. Confirm the workflow origin with `lc workflow list`. The brief names the failing files and what each is missing, and the conventions update when section 5 applies. Agree the workflow and whether to activate it now with the human before filing.
 
 ## 8. Confirm
 
