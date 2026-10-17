@@ -144,6 +144,8 @@ The design of record is the item [[LC-761]] - read it before changing how any of
 
 The pipeline runs the agent steps, then hands the human-facing steps to YOU; you also develop ideas into specs and review them. They surface in `lc inbox`. Each step's skill lives with its workflow, not here - when the human picks an item, run `lc show <step>` to get that step's skill (resolved from the item's own workflow), follow it, assist them, and close the step out the way that skill says to - which is not always `lc done`, and for a gate with a PR usually is not (see "Review feedback belongs on the PR"). `review-ci` fires on `review_rounds_cap` as well as on CI failures. You assist and do the bookkeeping; the human decides. (To see or understand a workflow itself: `lc workflow list` for summaries, `lc workflow describe <origin>/<name>` for one.)
 
+**Open what the gate presents first.** A human gate declares `presents` in its step file: `pr` means open the PR, `description` means read the item's description, `artifact:<name>` means open that named artifact. Start there before anything else; `lc workflow describe <workflow>` or the step file shows the value.
+
 **A push to a PR at a merge gate closes the gate as `head-moved`.** Pushing to a PR while its step sits at a merge gate (`await-merge`, `spec-await-merge`) makes the engine close that gate with the `head-moved` outcome: a code gate re-runs CI and review, a spec gate re-arms itself. Know this before you push by hand to a PR at a gate.
 
 **A hand-opened companion PR carries the item marker.** When you open a PR by hand in another repo for an item, put `<!-- lc:item=<ITEM> -->` on its own line in the body, as `open-pr` does, so `review-code` and `review-workflow` can find it by searching PR bodies.
