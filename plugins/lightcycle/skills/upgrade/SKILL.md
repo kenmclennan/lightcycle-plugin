@@ -11,7 +11,7 @@ An engine upgrade replaces the program but leaves operator-owned state as it was
 
 ## 0. Stop the pool, upgrade, restart
 
-A running pool keeps the old engine code until it is restarted, and a new engine may migrate the store under it. The SessionStart hook can run `lc upgrade` while a pool is up, so check `lc status`. If a pool is running, ask the human, then stop it with `lc stop --drain` (running work finishes, no new worker starts), run `lc upgrade`, and restart with `lc start`. Say so if the pool is left on the old code.
+A running pool keeps the old engine code until it is restarted, and a new engine may migrate the store under it. The SessionStart hook can run `lc upgrade` while a pool is up, so check `lc status`. If a pool is running, ask the human, then stop it with `lc stop --drain` (running work finishes, no new worker starts). The drain returns at once and the pool exits later, and `lc upgrade` refuses while the venv is in use, so wait until `lc status` shows no pool running before you run `lc upgrade`. Restart with `lc start --detach`: a foreground `lc start` blocks you. Say so if the pool is left on the old code.
 
 ## 0a. A blocked engine upgrade
 
@@ -42,7 +42,7 @@ For `trusted-authors` (the GitHub logins whose PR comments the pool acts on; bla
 
 A required key of a workflow's own config block is not an upgrade finding: `lc doctor` reports it as an ordinary `config` problem with no `kind`, naming the key and the block (`workflow-<origin>-<name>:`). Ask the human for the value and write it into that block, as in section 2.
 
-`lc workflow upgrade` runs the workflow's `upgrade` hook before it records the new SHA. If the hook fails, the origin stays at its old SHA and `lc workflow list` still shows the old pin. Read the command's output to see why: the hook's stdout and stderr are merged into it, and a hook that runs past `lifecycle-timeout-seconds` counts as failed. Fix the cause, then re-run `lc workflow upgrade`. A failed first `install` leaves the origin unregistered in the same way.
+`lc workflow upgrade` runs the workflow's `upgrade` hook before it records the new SHA. If the hook fails, the origin stays at its old SHA and `lc workflow list` still shows the old pin. Read the command's output to see why: the output is the last 2000 characters of the hook's stdout and stderr, and the failure names the full run log to read for the rest. A hook that runs past `lifecycle-timeout-seconds` counts as failed. Fix the cause, then re-run `lc workflow upgrade`. A failed first `install` leaves the origin unregistered in the same way.
 
 ## 3. `schedule-not-enabled` - choose a project, then write the block
 
