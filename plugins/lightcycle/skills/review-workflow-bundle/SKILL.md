@@ -22,7 +22,7 @@ Mechanical checks belong to `lc workflow check`. Always run `lc workflow check -
 
 ## 3. Read the bundle
 
-Read every workflow file and every step file in the bundle, in full, plus every `fragments/*.md` and the origin's shared-block manifest if it has one. Judge included text where it is included, and flag an origin fragment that shares an engine fragment's name as dead, since the engine's fragment wins. Judge each criterion against what the files say. Steps are shared between workflows, so a finding that depends on a workflow's own stages is judged per workflow, not per file.
+Read every workflow file and every step file in the bundle, in full, plus every `fragments/*.md` and the origin's shared-block manifest if it has one. Judge included text where it is included, and do not flag an origin fragment that shares an engine fragment's name as dead: a pinned bundle's own fragment wins the name clash and overrides the engine's, so judge it as the live text it is. Judge each criterion against what the files say. Steps are shared between workflows, so a finding that depends on a workflow's own stages is judged per workflow, not per file.
 
 Read for intent. A threshold hit is a signal to read closer, and a deliberate, noted copy is not a defect. Say so when you leave something alone, if the criteria name that case.
 
