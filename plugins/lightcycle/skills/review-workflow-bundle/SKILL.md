@@ -26,6 +26,10 @@ Read every workflow file and every step file in the bundle, in full, plus every 
 
 Read for intent. A threshold hit is a signal to read closer, and a deliberate, noted copy is not a defect. Say so when you leave something alone, if the criteria name that case.
 
+## Human gates
+
+Check that every human gate step declares `presents` in its front matter, with a value of `pr`, `description` or `artifact:<name>`, and that every `artifact:<name>` is `produces`-declared by some step in the workflow. Flag a gate with no `presents`, and a `presents` value that names a tab or view instead of what the human acts on.
+
 ## Scripts and lifecycle hooks
 
 When the bundle has a `scripts/` tree, a `script:` stage, a `guard: script:` schedule or a `lifecycle:` block, read each script in full as well. The criteria cover steps and workflow files, so judge these against the engine's script contract (`docs/ontology.md`, "script contract" and "lifecycle hook"; `lc workflow check --dir <bundle>` covers the mechanical part: paths under `scripts/`, executable, declared outcomes, a fixture for each script):
