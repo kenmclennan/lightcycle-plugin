@@ -13,10 +13,6 @@ An engine upgrade replaces the program but leaves operator-owned state as it was
 
 A running pool keeps the old engine code until it is restarted, and a new engine may migrate the store under it. The SessionStart hook can run `lc upgrade` while a pool is up, so check `lc status`. If a pool is running, ask the human, then stop it with `lc stop --drain` (running work finishes, no new worker starts). The drain returns at once and the pool exits later, and `lc upgrade` refuses while the venv is in use, so wait until `lc status` shows no pool running before you run `lc upgrade`. Restart with `lc start --detach`: a foreground `lc start` blocks you. Say so if the pool is left on the old code.
 
-## 0b. 0.7.0 is a breaking release with a store migration
-
-Engine 0.7.0 introduces the step model and migrates the store from schema 1 to 2 when it first opens. The migration is additive, and an engine at the old version still opens a version-2 store because its floor check accepts any version at or above its own, so downgrading works and the old engine ignores the new columns. Stop the pool first (section 0) and do not run `lc upgrade` while work is running. If the human wants a rehearsal, copy the store (a gzipped copy of the live one) and open that copy with the new engine before upgrading the real one; ask, never assume. Then upgrade and restart the pool. The migration backfills each existing closing note onto the step that wrote it and prints how many it matched; read that count back to the human and say if it looks wrong for the size of their store.
-
 ## 0a. A blocked engine upgrade
 
 If the SessionStart hook says `lc upgrade` did not complete, or `lc upgrade` exits 1 naming workflow origins, an installed workflow bundle's `requires-engine` excludes the new engine; restarting never clears it. Read the output: it names each blocking origin and its requirement. There are two routes, and the human picks:
@@ -24,7 +20,11 @@ If the SessionStart hook says `lc upgrade` did not complete, or `lc upgrade` exi
 - `lc workflow upgrade` for those origins, which pulls a bundle that fits the new engine. Then re-run `lc upgrade`.
 - `lc upgrade --force` when no compatible bundle exists yet. This installs an engine the bundle does not declare support for, so say so before running it.
 
-Once `lc upgrade` succeeds, carry on with the findings below.
+Once `lc upgrade` succeeds, carry on with the migration notes and findings below.
+
+## 0b. 0.7.0 is a breaking release with a store migration
+
+Engine 0.7.0 introduces the step model and migrates the store from schema 1 to 2 when it first opens. The migration is additive, and an engine at the old version still opens a version-2 store because its floor check accepts any version at or above its own, so downgrading works and the old engine ignores the new columns. Stop the pool first (section 0) and do not run `lc upgrade` while work is running. If the human wants a rehearsal, copy the store (a gzipped copy of the live one) and open that copy with the new engine before upgrading the real one; ask, never assume. Then upgrade and restart the pool. The migration backfills each existing closing note onto the step that wrote it and prints how many it matched; read that count back to the human and say if it looks wrong for the size of their store.
 
 ## 1. Read the findings
 
