@@ -28,7 +28,7 @@ Read for intent. A threshold hit is a signal to read closer, and a deliberate, n
 
 ## Human gates
 
-Check that every human gate step declares `presents` in its front matter, and that its value names one of the step's `detail` entries (an execution field, `in:<name>` or `out:<name>`, such as `in:findings` or `report`). The legacy values `pr`, `description` and `artifact:<name>` are valid only on a step with no `detail`, and every `artifact:<name>` must be `produces`-declared by some step in the workflow. Flag a gate with no `presents`, and a `presents` value that names a tab or view instead of what the human acts on.
+Check that every human gate step declares `presents` in its front matter, and that its value names one of the step's `detail` entries (an execution field, `in:<name>` or `out:<name>`, such as `in:findings` or `in:report`). The legacy values `pr`, `description` and `artifact:<name>` are valid only on a step with no `detail`, and every `artifact:<name>` must be `produces`-declared by some step in the workflow. Flag a gate with no `presents`, a gate whose `presents` is `report` (a gate's own report is its closing note and null while the gate is open; the fix is `in:report`, the previous step's report), and a `presents` value that names a tab or view instead of what the human acts on.
 
 ## Step outputs and Detail
 
