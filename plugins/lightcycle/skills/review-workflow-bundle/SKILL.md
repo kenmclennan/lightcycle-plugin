@@ -30,6 +30,10 @@ Read for intent. A threshold hit is a signal to read closer, and a deliberate, n
 
 Check that every human gate step declares `presents` in its front matter, with a value of `pr`, `description` or `artifact:<name>`, and that every `artifact:<name>` is `produces`-declared by some step in the workflow. Flag a gate with no `presents`, and a `presents` value that names a tab or view instead of what the human acts on.
 
+## Step outputs and Detail
+
+Check that every step declares `detail:` and that every artifact the step attaches is named under its `produces`. Flag a step that attaches an artifact it does not declare, and a `detail:` entry that is not an execution field, `in:<name>` or `out:<name>`. Check that each human gate's `presents` value is in its own `detail` list. Flag a step prompt that tells the next step to read a forwarded note: a closing note is the step's report, received as an input, never forwarded.
+
 ## Scripts and lifecycle hooks
 
 When the bundle has a `scripts/` tree, a `script:` stage, a `guard: script:` schedule or a `lifecycle:` block, read each script in full as well. The criteria cover steps and workflow files, so judge these against the engine's script contract (`docs/ontology.md`, "script contract" and "lifecycle hook"; `lc workflow check --dir <bundle>` covers the mechanical part: paths under `scripts/`, executable, declared outcomes, a fixture for each script):
