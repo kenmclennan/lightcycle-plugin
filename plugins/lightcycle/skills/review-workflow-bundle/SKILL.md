@@ -30,6 +30,8 @@ Read for intent. A threshold hit is a signal to read closer, and a deliberate, n
 
 Check that every human gate step declares `presents` in its front matter, and that its value names one of the step's `detail` entries (an execution field, `in:<name>` or `out:<name>`, such as `in:findings` or `in:report`). The legacy values `pr`, `description` and `artifact:<name>` are valid only on a step with no `detail`, and every `artifact:<name>` must be `produces`-declared by some step in the workflow. Flag a gate with no `presents`, a gate whose `presents` is `report` (a gate's own report is its closing note and null while the gate is open; the fix is `in:report`, the previous step's report), and a `presents` value that names a tab or view instead of what the human acts on.
 
+Check that every review stage declares `review: <outcome>` and every human gate that sends work back declares `sends-back: <outcome>`, each naming an outcome that stage can emit. Flag a review stage with no `review:` (it records no verdicts or escapes in `lc review-yield`), a gate that sends work back with no `sends-back:`, and a value that is not one of the stage's declared outcomes.
+
 ## Step outputs and Detail
 
 Check that every artifact the step attaches is named under its `produces`. Flag a step that attaches an artifact it does not declare, and a `detail:` entry that is not an execution field, `in:<name>` or `out:<name>`. Never flag a step for omitting `detail`: it is optional and a step without it gets the default list. Where a step does declare `detail`, check that its `presents` value is in that list. Flag a step prompt that tells the next step to read a forwarded note: a closing note is the step's report, received as an input, never forwarded.
