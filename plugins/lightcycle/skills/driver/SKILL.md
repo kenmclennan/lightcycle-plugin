@@ -149,6 +149,8 @@ When the human asks to run one now ("run the github issue workflow again"), find
 
 `lc schedule run` refuses when the schedule is disabled, when schedules are paused (`schedules-paused`), or when it already has an open item. Report the refusal. Never change the cron or the `enabled` flag in the config to force a run: config edits are the human's call.
 
+A scheduled item's project is the schedule's purpose `name` (such as `audit` or `summary`), not the repo it runs in; `project:` still chooses the repo and the default shortcode.
+
 A workflow's suggested schedule shows in `lc schedule list` as `off` with "bundle suggestion, not enabled in config" (for example `review-yield`). The engine deliberately neither seeds nor flags these, and the bundle never enables one; an operator does, in config. Offer such a row to the human, and never enable it unasked.
 
 The item a run files is an ordinary scheduled item, labelled `schedule:<id>`. Watch for it in `lc inbox` and work it like any other.
