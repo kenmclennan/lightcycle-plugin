@@ -1,6 +1,6 @@
 ---
 name: upgrade
-description: Bring an already-set-up machine up to date after the lightcycle engine upgraded - the guided walk through what `lc upgrade` left for the operator. Use this when the SessionStart hook says the engine version changed, when `lc doctor` reports upgrade findings (a blank required config key, a scheduled workflow not enabled, an obsolete config key, an outdated guidance conventions version, non-conforming guidance entries, a reverted guidance entry), or when someone says "I just upgraded lightcycle" / "bring my machine up to date". It is not first-time onboarding - that is `setup`.
+description: Bring an already-set-up machine up to date after the lightcycle engine upgraded - the guided walk through what `lc upgrade` left for the operator. Use this when the SessionStart hook says the engine version changed, when `lc doctor` reports upgrade findings (a blank required config key, a scheduled workflow not enabled, an obsolete config key, an outdated guidance conventions version, non-conforming guidance entries, a reverted guidance entry, a guidance project with no shortcode, a workflow origin behind its tracked ref), or when someone says "I just upgraded lightcycle" / "bring my machine up to date". It is not first-time onboarding - that is `setup`.
 ---
 
 # Upgrade a lightcycle machine
@@ -71,6 +71,10 @@ An entry is `draft` on the guidance repo's default branch but was `stable` in it
 ## 6b. `guidance-shortcode-missing` - set the shortcode on the human's word
 
 The `guidance` project is registered without an id shortcode, so `--project guidance` cannot mint ids. The fix is `lc project set guidance --shortcode <the configured guidance-shortcode>`; read the value from `lc config` (seeded `GDN`). Ids cannot change once items exist under a shortcode, so run it only after the human says so, and show them the exact command first.
+
+## 6c. `origin-behind` - upgrade the origin on the human's word
+
+A workflow origin that tracks a ref has a remote sha that differs from the bundle pulled here. The message reads `<origin>: behind <ref> - pulled <sha>, remote <sha>`, and the `fix` is `lc workflow upgrade <origin>`. Read the finding back, and say the upgrade also repins in-flight items onto the new bundle. Run it only after the human says so, then check with `lc doctor`. An origin registered without a ref is never reported behind.
 
 ## 7. Filing the item
 
