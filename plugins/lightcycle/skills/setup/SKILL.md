@@ -11,7 +11,7 @@ This is the one-time onboarding for a machine. A machine that is already set up 
 
 ## 1. Health and prerequisites
 
-Run `lc doctor` (store, pins, contract, origin, config, orphans, facets and guidance health) and check the prerequisites the bootstrap cannot establish:
+Run `lc doctor` (store, pins, contract, workflows, config, orphans, facets and guidance health) and check the prerequisites the bootstrap cannot establish:
 
 - `command -v lc` / `command -v pipx` / `command -v git` - present on PATH.
 - `gh auth status` - authenticated (needed for PR steps and for cloning private repos on demand).
