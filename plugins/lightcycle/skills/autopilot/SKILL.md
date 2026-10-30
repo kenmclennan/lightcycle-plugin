@@ -75,7 +75,7 @@ Never put either marker in the description's first 60 characters - `lc backlog`/
 
 ## Cost
 
-No CLI command sums cost across items or a session - `lc`'s cost lookup resolves exactly one node at a time. Compute total spend for an item by listing its step ids (`lc trace <item> --json`) and summing each step's own `usage_cost_usd` (`lc show <step-id>`, which carries it directly), across every item currently in scope. If a TUI session is open, its already-rendered per-item cost total may be read directly instead of re-deriving it by hand. This is an observation for the two reports below, not a gate - nothing about the running total stops or slows activation.
+No CLI command sums cost across items or a session - `lc`'s cost lookup resolves exactly one node at a time. Compute total spend for an item by listing its step ids (`lc trace <item> --json`) and summing each step's own `usage_cost_usd` (`lc show <step-id>`, which carries it directly), across every item currently in scope. If a TUI session is open, its already-rendered per-item cost total may be read directly instead of re-deriving it by hand. Each step also records `usage_api_calls`, a lower bound on its `gh` calls metered through the gh call log; sum it the same way when reporting API load. This is an observation for the two reports below, not a gate - nothing about the running total stops or slows activation.
 
 ## Rework: a new-defect test
 
