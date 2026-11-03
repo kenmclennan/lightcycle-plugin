@@ -5,7 +5,7 @@ description: Take over a scoped, bounded run of driving lightcycle unattended. U
 
 # Autopilot
 
-Autopilot is how the driver runs unattended: a named scope, three exit conditions, and a standing rule for what you may never decide alone. It does not replace the driver skill's standing disciplines - reviewing every gate against `origin/main` rather than trusting a clean pass, verifying empirically rather than by reasoning, filing findings the moment they are judged, serializing work that touches the same files - it composes with them for the stretch where the human is not present to be asked.
+Autopilot is how the driver runs unattended: a named scope, three exit conditions, and a standing rule for what you may never decide alone. It does not replace the driver skill's standing disciplines - reviewing every gate against the repo's default branch (usually `origin/main`) rather than trusting a clean pass, verifying empirically rather than by reasoning, filing findings the moment they are judged, serializing work that touches the same files - it composes with them for the stretch where the human is not present to be asked.
 
 ## Agree the Scope Statement before starting
 

@@ -28,9 +28,9 @@ Engine 0.7.0 introduces the step model and migrates the store from schema 1 to 2
 
 ## 1. Read the findings
 
-Run `lc doctor --json`. It prints `{category: [finding, ...]}`; each finding has `category` and `message`, and an upgrade finding also has a stable `kind` and a `fix`. Keep the findings that carry a `kind`: those are this skill's. Any other finding is ordinary health (a stale pin, an orphan, a missing facet page) - report it, but it is not an upgrade finding; point at `driver` for pins and bookkeeping.
+Run `lc doctor --json`. It prints `{category: [finding, ...]}`; each finding has `category` and `message`, and an upgrade finding also has a stable `kind` and a `fix`. This skill handles only these upgrade kinds: `config-key-blank`, `config-key-obsolete`, `schedule-not-enabled`, `guidance-conventions-outdated`, `guidance-entries-nonconforming`, `guidance-entry-reverted`, `guidance-shortcode-missing` and `origin-behind`. Any other finding, including one with a different `kind` such as `step-fork` or `pr-feedback-unwatched`, is a health problem (a stale pin, an orphan, a missing facet page) - report it, but it is not an upgrade finding; point at `driver` for it, and the machine can still be called current when no upgrade kind remains.
 
-If no finding carries a `kind`, say the machine is already current and stop.
+If no finding carries one of the upgrade kinds above, say the machine is already current and stop.
 
 Walk the findings one at a time, in the order below, using each finding's own `fix` text as the starting point. If `lc doctor --json` shows a `kind` this skill does not list, read its `message` and `fix` to the human and ask how to proceed - do not guess.
 
@@ -82,7 +82,7 @@ A conventions update or data backfill is filed as an item, never done by hand in
 
 ## 8. Confirm
 
-Once the human has done or deferred each finding, re-run `lc doctor --json`. A config value clears at once; a PR or backfill item clears only after it merges, so say which findings remain and why. Success means no finding with a `kind` is left, or the remaining ones are named as waiting on a PR or item. Finish by pointing at `driver` to continue working.
+Once the human has done or deferred each finding, re-run `lc doctor --json`. A config value clears at once; a PR or backfill item clears only after it merges, so say which findings remain and why. Success means no finding with an upgrade kind is left, or the remaining ones are named as waiting on a PR or item. Finish by pointing at `driver` to continue working.
 
 ## Boundary
 
