@@ -28,11 +28,11 @@ Engine 0.7.0 introduces the step model and migrates the store from schema 1 to 2
 
 ## 1. Read the findings
 
-Run `lc doctor --json`. It prints `{category: [finding, ...]}`; each finding has `category` and `message`, and an upgrade finding also has a stable `kind` and a `fix`. This skill handles only these upgrade kinds: `config-key-blank`, `config-key-obsolete`, `schedule-not-enabled`, `guidance-conventions-outdated`, `guidance-entries-nonconforming`, `guidance-entry-reverted`, `guidance-shortcode-missing` and `origin-behind`. Any other finding, including one with a different `kind` such as `step-fork` or `pr-feedback-unwatched`, is a health problem (a stale pin, an orphan, a missing facet page) - report it, but it is not an upgrade finding; point at `driver` for it, and the machine can still be called current when no upgrade kind remains.
+Run `lc doctor --json`. It prints `{category: [finding, ...]}`; each finding has `category` and `message`, and an upgrade finding also has a stable `kind` and a `fix`. This skill handles only these upgrade kinds: `config-key-blank`, `config-key-obsolete`, `schedule-not-enabled`, `guidance-conventions-outdated`, `guidance-entries-nonconforming`, `guidance-entry-reverted`, `guidance-shortcode-missing` and `origin-behind`. Any other finding, including one with a different `kind` such as `step-fork`, `pr-feedback-unwatched` or `guidance-budget-overflow`, is a health problem (a stale pin, an orphan, a missing facet page) - report it, but it is not an upgrade finding; point at `driver` for it, and the machine can still be called current when no upgrade kind remains.
 
 If no finding carries one of the upgrade kinds above, say the machine is already current and stop.
 
-Walk the findings one at a time, in the order below, using each finding's own `fix` text as the starting point. If `lc doctor --json` shows a `kind` this skill does not list, read its `message` and `fix` to the human and ask how to proceed - do not guess.
+Walk the findings one at a time, in the order below, using each finding's own `fix` text as the starting point. `guidance-budget-overflow` is ordinary health, not an upgrade finding: do not ask the human about it here; the `driver` skill routes it to a `guidance-entry` item that narrows, consolidates or deprecates the crowding entries. If `lc doctor --json` shows a `kind` this skill does not list and it is not one of these health kinds, read its `message` and `fix` to the human and ask how to proceed - do not guess.
 
 ## 2. `config-key-blank` - ask, then set
 
