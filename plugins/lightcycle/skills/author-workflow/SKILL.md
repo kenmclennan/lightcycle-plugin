@@ -34,8 +34,6 @@ A **workflow** is how lightcycle composes many ephemeral agents into a durable p
   Installing such an origin means trusting its code, so say what each script touches. `lc workflow check` validates the block and each `script:` path, and `lc workflow simulate` walks every outcome from a fixture per script, never running the script.
 
 - **The design checklist.** Mark exactly one `primary` edge for each stage that has a forward path. Give every owned stage a `display:` phrase. When a graph changes, the origin scaffold also asks for the per-workflow `docs/<name>.md` page and its README row. A needed engine change goes in a `## Coupled change` section, because `workflow-authoring` builds against one repo.
-- **Whether the workflow runs a phase once per slice.** A workflow may declare `slices: <phase> from <artifact-type>` in its front matter. The engine then runs that phase once per slice as a stack of PRs, with one merge gate per slice and one cleanup. `lc workflow simulate --slices N` exercises it; the workflows bundle's `docs/spec-driven.md` holds the shipped example.
-
 - **The design mermaid.** The output of design is a mermaid flowchart of the graph plus a one-line description of each stage, gate, and trigger - reviewed (on a spec PR) before anything is built.
 
 ## What NOT to do from this skill
