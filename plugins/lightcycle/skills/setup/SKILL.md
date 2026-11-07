@@ -15,6 +15,7 @@ Run `lc doctor` (store, pins, contract, workflows, config, orphans, teardown, fa
 
 - `command -v lc` / `command -v pipx` / `command -v git` - present on PATH.
 - `gh auth status` - authenticated (needed for PR steps and for cloning private repos on demand).
+- `gh --version` reports 2.90 or later and `gh extension list` shows `github/gh-stack` (`gh extension install github/gh-stack`) - stacked delivery needs both, and without `gh stack` an item ships as one PR. `lc doctor` flags either under `github`.
 - `git config user.name` and `git config user.email` set - `lc init` (when it creates the guidance repo) and `lc workflow init` refuse without them.
 - `claude` signed in to a Claude subscription (workers bill to it) - run `claude` once to confirm.
 
