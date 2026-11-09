@@ -43,6 +43,7 @@ When the bundle has a `scripts/` tree, a `script:` stage, a `guard: script:` sch
 - **Tests.** Each script has a test under `scripts/tests/`, and the bundle's CI runs them. Neither `check` nor `simulate` does.
 - **Writes only to the data directory.** The script runs with the data directory as its working directory. Flag any write elsewhere: an absolute path, `~`, the bundle directory, or a git worktree the stage did not declare.
 - **No secrets.** No token, password or key in a script, a fixture, a `config-example` value or a test. Secrets belong in the operator's `workflow-<origin>-<name>:` config block, read from the `LC_WORKFLOW_CONFIG_<KEY>` environment variable.
+- **Config keys listed per step.** Every `LC_WORKFLOW_CONFIG_<KEY>` a script reads, and every config key a step prompt reads, must be listed in that stage's step `config: [...]`. An unlisted key arrives unset. Flag any that is not.
 - **Every outcome reachable in simulate.** Each outcome the stage declares has an entry in the script's fixture (`scripts/fixtures/<path after scripts/>.json`; a guard's keys are `pass` and `fail`), and the script can print each one. Flag a declared outcome no code path produces.
 - **Idempotent.** Delivery is at-least-once, and hooks must be safe to run twice.
 
