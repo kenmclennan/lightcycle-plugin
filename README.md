@@ -34,6 +34,7 @@ The session nudge points you at the right one: `setup` when no projects are regi
   - `driver` - the human's seat for driving lightcycle: developing an idea into a brief, filing items to the pipeline, and clearing the human review gates (spec PRs, code await-merge) in `lc inbox`. Invoke it to drive a session.
   - `author-workflow` - co-design the shape of a workflow (its flow - stages, routes, hooks) before it is built; the authoring craft itself lives in the built-in workflow-authoring bundle's steps.
   - `autopilot` - take over a scoped, bounded run of driving lightcycle unattended: a named scope agreed with the human up front and three exit conditions. Invoke it before an unattended run starts.
+  - `review-workflow-bundle` - review a whole workflow bundle on demand against the engine's own audit criteria, reporting findings with file and line; it creates nothing by default.
 
 The plugin owns getting the engine onto the machine and keeping it current; the engine owns everything at runtime.
 
@@ -47,11 +48,14 @@ plugins/lightcycle/
 │   ├── hooks.json                    # SessionStart -> bootstrap.sh
 │   └── bootstrap.sh                  # install / upgrade / init
 └── skills/
-    ├── setup/SKILL.md
+    ├── setup/
+    │   ├── SKILL.md
+    │   └── references/callout-functions.md
     ├── upgrade/SKILL.md
     ├── driver/
     │   ├── SKILL.md
     │   └── references/why.md      # level 3 - loaded on demand
     ├── author-workflow/SKILL.md
+    ├── review-workflow-bundle/SKILL.md
     └── autopilot/SKILL.md
 ```

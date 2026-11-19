@@ -18,7 +18,7 @@ Never assume a scope. Before any autonomous action, propose a Scope Statement an
 
 Also agree, at the same time, as part of hand-over rather than discovered later: that the watch (see "Arm the watch" below) will be started before anything else happens, and that it **dies with this session**: autopilot cannot resume itself across a session restart or a crash, and nothing pages the human if that happens.
 
-**Goal condition.** The run's goal is met when every item in (1) and (2) has reached a terminal state (`done`, or `backlogged` after triage - see "Mid-run arrivals" below) and nothing has been added to (1) beyond what that section permits. Check this by iterating the two lists against `lc show <id>`, the same bookkeeping weight phase-gating already carries.
+**Goal condition.** The run's goal is met when every item in (1) and (2) has reached a terminal state (`done`, or `backlogged` after triage - see "Mid-run arrivals" below) and nothing has been added to (1) beyond what that section permits. Check this by iterating the two lists against `lc show <id>`, the same bookkeeping weight ordering items with `--depends` already carries.
 
 ## Arm the watch before any autonomous action
 
