@@ -10,7 +10,7 @@ A callout function is the executable behind a `callout-<id>` config block. The e
 
 ## Practice
 
-- **Preflight answers fast and never does the work.** Check that tools exist and the repository is set up, and return. The engine runs it in `lc doctor`, after `lc config --edit`, and before each gate run.
+- **Preflight answers fast and never does the work.** Check that tools exist and the repository is set up, and return. The engine runs it in `lc doctor`, after `lc config set` changes a callout, and before each gate run.
 - **Every error carries a `fix`.** Name the command the operator can run to repair the problem, not only what is wrong.
 - **Scope the function with its block's `principal-outputs`, not with a check of its own.** The engine starts it only where the principal output matches, so a spec view lists `spec` and a review view lists `code`. If a gate still gives it nothing to act on, return `ok` with a short text note instead of failing: a failure is recorded and shown as a problem.
 - **The callout's `timeout` is the only bound on a run.** The engine kills the process at the limit, so do not add a second clock inside the function.
