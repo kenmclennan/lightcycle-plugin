@@ -44,6 +44,8 @@ A running pool reloads the config file within a tick, so the new value applies w
 
 For `trusted-authors` (the GitHub logins whose PR comments the pool acts on; blank, it acts on none) follow the `setup` skill's "Trusted authors" section: the human's own login, then teammates and review bots, each added with `lc config add trusted-authors <login>`.
 
+A machine upgraded from before `review-bots` existed may have bots in `trusted-authors` that are not in `review-bots`; the engine then ignores their reviews unless they carry `@lc`. Run `lc config get trusted-authors` and `lc config get review-bots`, ask the human which trusted logins are review bots, and add each with `lc config add review-bots <login>`. Never decide that for them.
+
 ## Workflow config keys and failed hooks
 
 A required key of a workflow's own config block is not an upgrade finding: `lc doctor` reports it as an ordinary `config` problem with no `kind`, naming the key and the block (`workflow-<origin>-<name>:`). Ask the human for the value and run `lc config set workflow-<origin>-<name>.<key> <value>`, as in section 2.
