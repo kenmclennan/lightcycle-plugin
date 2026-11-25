@@ -20,7 +20,7 @@ upgrade_hint() {
 nudge() {
   if [ -z "$(lc project list 2>/dev/null | cut -f1 | grep -v -x -e specs -e guidance)" ]; then
     echo "lightcycle: no projects registered on this machine yet - invoke the 'setup' skill to configure lightcycle and register your repos."
-  elif lc doctor 2>/dev/null | grep -q "trusted-authors.*blank"; then
+  elif [ -z "$(lc config get trusted-authors 2>/dev/null)" ]; then
     upgrade_hint
     echo "lightcycle: trusted-authors is blank, so the pool acts on no PR comments - invoke the 'setup' skill to set it."
   else
