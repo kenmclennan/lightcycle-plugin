@@ -11,7 +11,7 @@ An engine upgrade replaces the program but leaves operator-owned state as it was
 
 ## 0. Stop the pool, upgrade, restart
 
-A running pool keeps the old engine code until it is restarted, and a new engine may migrate the store under it. The SessionStart hook can run `lc upgrade` while a pool is up, so check `lc status`. If a pool is running, ask the human, then stop it with `lc stop --drain` (running work finishes, no new worker starts). The drain returns at once and the pool exits later, and `lc upgrade` refuses while the venv is in use, so wait until `lc status` shows no pool running before you run `lc upgrade`. Restart with `lc start --detach`: a foreground `lc start` blocks you. Say so if the pool is left on the old code.
+A running pool keeps the old engine code until it is restarted, and a new engine may migrate the store under it. The SessionStart hook can run `lc upgrade` while a pool is up, so check `lc status`. If a pool is running, ask the human, then stop it with `lc stop --drain` (running work finishes, no new worker starts). The drain returns at once and the pool exits later, and `lc upgrade` refuses at once while a long-lived holder (`lc start`, `lc tui`, `lc logs -f`, a worker) is using the venv, so wait until `lc status` shows no pool running before you run it. One-shot `lc` commands are waited for instead: it names them and installs once they exit. Restart with `lc start --detach`: a foreground `lc start` blocks you. Say so if the pool is left on the old code.
 
 ## 0a. A blocked engine upgrade
 

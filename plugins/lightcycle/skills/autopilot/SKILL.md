@@ -83,7 +83,7 @@ Any rework edge without a cap is bounded only by this new-defect test. That incl
 
 ## Reading a writer's decisions at a gate
 
-The previous step's closing note must name any deviation from the spec or brief, and the PR body no longer carries it. Read it with `lc show <step>` on the step that wrote it (its `report`): it is where a writer's decisions surface at a gate.
+On a code or change PR the body is the coder's commit message and carries no closing note; a spec or workflow PR still quotes it under `## Closing note from <stage>`. Either way, read the closing note, which must name any deviation from the spec or brief, with `lc show <step>` on the step that wrote it (its `report`): it is where a writer's decisions surface at a gate.
 
 ## Sequencing engine and workflow items
 
